@@ -1,0 +1,871 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Heirloom Tree Styles</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=Jost:ital,wght@0,400;0,500;0,600;1,400&family=Manrope:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400;1,6..72,500&family=Young+Serif&display=swap">
+<style>
+/* ---------- Outer frame tokens ---------- */
+:root{
+  --bg:#F5F4F1; --surface:#FFFFFF; --text:#1B1C1E; --muted:#585B62; --line:#DDD9D1;
+  --accent:#2E4A6B; --accent-text:#FFFFFF; --focus:#1F5FD6; --chip:#ECEAE5;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121315; --surface:#1B1D20; --text:#ECEBE8; --muted:#A4A7AD; --line:#2E3135;
+    --accent:#A9C2E2; --accent-text:#10161E; --focus:#8AB4FF; --chip:#24272B;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121315; --surface:#1B1D20; --text:#ECEBE8; --muted:#A4A7AD; --line:#2E3135;
+  --accent:#A9C2E2; --accent-text:#10161E; --focus:#8AB4FF; --chip:#24272B;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 Figtree,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.page{max-width:1400px;margin:0 auto;padding-block:28px 48px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+button{font:inherit;color:inherit}
+.top{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;margin-bottom:18px}
+.top h1{margin:0;font:600 clamp(22px,3.2vw,32px)/1.15 Figtree,system-ui,sans-serif;letter-spacing:-.01em}
+.top p{margin:6px 0 0;color:var(--muted);max-width:68ch}
+.theme-btn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-size:13px;cursor:pointer;white-space:nowrap}
+.tabs{position:sticky;top:0;z-index:20;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:8px 0;background:var(--bg)}
+.tab{display:flex;align-items:center;gap:10px;min-height:48px;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer;text-align:left;transition:border-color .15s ease-out,background-color .15s ease-out}
+.tab:hover{border-color:var(--muted)}
+.tab[aria-selected="true"]{border-color:var(--text);box-shadow:inset 0 0 0 1px var(--text)}
+.tab .dots{display:flex;flex:none}
+.tab .dots i{width:14px;height:14px;border-radius:50%;margin-left:-4px;box-shadow:0 0 0 2px var(--surface)}
+.tab .dots i:first-child{margin-left:0}
+.tab b{display:block;font-size:14px;font-weight:600;line-height:1.2}
+.tab small{display:block;font-size:12px;color:var(--muted);line-height:1.2}
+@media (max-width:640px){.tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.tab small{display:none}}
+.intro{display:flex;gap:16px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;margin:18px 0 14px}
+.intro .eyebrow{margin:0;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.intro h2{margin:2px 0 4px;font:600 clamp(20px,2.6vw,26px)/1.2 Figtree,system-ui,sans-serif}
+.intro .mood{margin:0;max-width:72ch}
+.intro .suits{margin:4px 0 0;color:var(--muted);font-size:14px;max-width:72ch}
+.replay{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border:0;border-radius:999px;background:var(--accent);color:var(--accent-text);font-weight:600;cursor:pointer;transition:transform .12s ease-out}
+.replay:active{transform:scale(.97)}
+.replay svg{width:16px;height:16px}
+.notes{margin-top:36px;display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.notes section{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.notes h3{margin:0 0 6px;font-size:15px}
+.notes p,.notes li{margin:0;color:var(--muted);font-size:14px}
+.notes ul{margin:0;padding-left:18px}
+
+/* ---------- Shared mockup structure ---------- */
+.world{border-radius:16px;overflow:hidden;border:1px solid var(--line)}
+.stage{display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){.stage{grid-template-columns:minmax(0,1fr) 340px}}
+.cwrap{position:relative;overflow:hidden;height:300px}
+.canvas{position:absolute;left:0;top:0;width:960px;height:740px;transform-origin:0 0;overflow:hidden;cursor:grab;touch-action:pan-y}
+.canvas.dragging{cursor:grabbing}
+.tree{position:absolute;left:0;top:0;width:960px;height:740px;transform-origin:480px 370px;transition:transform .28s cubic-bezier(.22,1,.36,1)}
+.canvas.dragging .tree{transition:none}
+.links{position:absolute;left:0;top:0;overflow:visible}
+.links path,.links line{fill:none}
+.ln-under,.leaf,.tendril,.atom,.atom-dot,.endpt{display:none}
+.card{position:absolute;width:116px;height:150px;transition:transform .2s cubic-bezier(.22,1,.36,1),box-shadow .2s ease-out;transform-origin:50% 0}
+.card:hover,.card:focus-within,.card.is-hover{z-index:5}
+.card:hover{transform:translateY(-2px)}
+.card-main{all:unset;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;width:100%;height:100%;padding:11px 6px 6px;text-align:center;cursor:pointer;border-radius:inherit}
+.card-main:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+.pt{position:relative;flex:none;width:60px;height:60px;overflow:hidden}
+.pt svg{display:block;width:100%;height:100%}
+.ini{display:none}
+.corners,.tape,.stamp{display:none}
+.nm{margin-top:7px;line-height:1.1}
+.fn{display:block;font-size:16px}
+.ln{display:block;font-size:9px;letter-spacing:.15em;text-transform:uppercase;margin-top:3px}
+.dt{display:block;font-size:10.5px;margin-top:5px;font-variant-numeric:tabular-nums}
+.note{display:block;font-size:10px;margin-top:1px}
+.badge{position:absolute;top:7px;right:7px;display:flex;align-items:center;gap:2px;height:18px;padding:0 6px;font-size:10px;font-weight:600;pointer-events:none}
+.badge i{display:block;width:2px;border-radius:1px;background:currentColor}
+.badge i:nth-child(1){height:5px}.badge i:nth-child(2){height:10px}.badge i:nth-child(3){height:7px}.badge i:nth-child(4){height:11px}
+.badge em{font-style:normal;margin-left:3px}
+.hdl{position:absolute;z-index:3;width:26px;height:26px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;opacity:0;transform:scale(.5);transition:opacity .15s ease-out,transform .22s cubic-bezier(.34,1.56,.64,1)}
+.hdl svg{width:13px;height:13px}
+.hdl.t{left:45px;top:-13px}.hdl.b{left:45px;bottom:-13px}.hdl.l{left:-13px;top:62px}.hdl.r{right:-13px;top:62px}
+.card:hover .hdl,.card:focus-within .hdl,.card.is-hover .hdl{opacity:1;transform:scale(1)}
+.hdl .lbl{position:absolute;white-space:nowrap;font-size:10.5px;line-height:1;padding:4px 6px;pointer-events:none;opacity:0;transition:opacity .15s ease-out}
+.hdl.t .lbl{bottom:calc(100% + 4px);left:50%;transform:translateX(-50%)}
+.hdl.b .lbl{top:calc(100% + 4px);left:50%;transform:translateX(-50%)}
+.hdl.l .lbl,.hdl.r .lbl{top:calc(100% + 4px);left:50%;transform:translateX(-50%)}
+.hdl:hover .lbl,.hdl:focus-visible .lbl,.card.is-hover .hdl .lbl{opacity:1}
+.anno{position:absolute;transform:translateX(-50%);white-space:nowrap;pointer-events:none}
+.tb{position:absolute;left:16px;top:16px;width:290px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;z-index:8}
+.tb-title{display:block;font-size:16px;line-height:1.2}
+.tb-meta{display:block;font-size:11px;margin-top:2px}
+.tb-s{display:flex;align-items:center;gap:6px;height:32px;padding:0 10px}
+.tb-s svg{width:14px;height:14px;flex:none}
+.tb-s input{all:unset;flex:1;min-width:0;font-size:13px}
+.zm{position:absolute;right:16px;top:16px;display:flex;flex-direction:column;align-items:stretch;z-index:8}
+.zm button{width:38px;height:36px;display:grid;place-items:center;border:0;background:none;cursor:pointer;padding:0}
+.zm button svg{width:16px;height:16px}
+.zm-v{font-size:10px;text-align:center;padding:2px 0 4px;font-variant-numeric:tabular-nums}
+.mm{position:absolute;right:14px;bottom:12px;width:136px;height:104px;z-index:8;overflow:hidden}
+.mm svg{display:block;width:100%;height:100%}
+.mm rect.vp{fill:none !important;transition:all .28s cubic-bezier(.22,1,.36,1)}
+.foot{position:absolute;left:16px;bottom:18px;max-width:290px;margin:0;z-index:7;pointer-events:none}
+.status{position:absolute;left:330px;bottom:20px;max-width:430px;margin:0;padding:7px 12px;font-size:12px;z-index:9;opacity:0;transform:translateY(6px);transition:opacity .2s ease-out,transform .2s ease-out;pointer-events:none}
+.status.show{opacity:1;transform:none}
+
+/* Drawer */
+.drawer{position:relative;min-height:0}
+.dr{padding:18px 20px 24px;display:flex;flex-direction:column;gap:20px}
+@media (min-width:900px){.dr{position:absolute;inset:0;overflow:auto}}
+.dr-top{display:flex;align-items:center;justify-content:space-between}
+.dr-kicker{font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.dr-x{width:36px;height:36px;display:grid;place-items:center;border:0;background:none;cursor:pointer;border-radius:50%}
+.dr-x svg{width:16px;height:16px}
+.dr-id{display:flex;gap:14px;align-items:center}
+.dr-id .pt{width:76px;height:76px}
+.dr-name{margin:0;font-size:24px;line-height:1.1;font-weight:400}
+.dr-sub{margin:4px 0 0;font-size:12.5px}
+.dr h4{margin:0 0 10px;display:flex;align-items:center;gap:8px;font-weight:600}
+.dr h4 span{opacity:.7;font-weight:400}
+.dr h4::after{content:"";flex:1;height:1px;background:currentColor;opacity:.18}
+.bio{margin:0}
+.gal{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.ph{margin:0;min-width:0}
+.ph .img{position:relative;aspect-ratio:4/5;background:radial-gradient(circle at 72% 26%,var(--sun) 0 9%,transparent 10%),linear-gradient(var(--s1),var(--s2) 58%,var(--g) 58%);overflow:hidden}
+.ph .img svg{position:absolute;left:0;bottom:6%;width:100%;height:60%}
+.ph figcaption{margin-top:4px;font-size:10.5px;line-height:1.15;overflow-wrap:anywhere}
+.ph.more .img{display:grid;place-items:center;background:none;font-size:13px;font-weight:600}
+.audio{padding:14px}
+.au-title{margin:0;font-size:15px;line-height:1.25}
+.au-meta{margin:2px 0 0;font-size:11.5px}
+.au-row{display:flex;align-items:center;gap:12px;margin-top:12px}
+.play{flex:none;width:44px;height:44px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;transition:transform .12s ease-out}
+.play:active{transform:scale(.94)}
+.play svg{width:16px;height:16px}
+.wave{flex:1;min-width:0;height:38px;display:flex;align-items:center;gap:2px}
+.wave i{flex:1;min-width:1px;border-radius:2px;transition:background-color .15s linear}
+.au-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;flex-wrap:wrap}
+.time{font-size:11.5px;font-variant-numeric:tabular-nums}
+.rec{display:inline-flex;align-items:center;gap:7px;min-height:34px;padding:0 12px;cursor:pointer;font-size:12px;background:none}
+.rec i{width:9px;height:9px;border-radius:50%;flex:none}
+.rec[aria-pressed="true"] i{animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.25}}
+.au-empty{margin:0 0 10px;font-size:13px}
+.rels{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.rels li{display:flex;align-items:center;gap:10px;padding:6px 0}
+.rels svg{flex:none;width:30px;height:12px;overflow:visible}
+.rels .rn{flex:1;min-width:0}
+.rels .rr{font-size:11px;white-space:nowrap}
+.empty-dr{margin:auto 0;text-align:center;padding:40px 10px}
+.empty-dr p{margin:6px 0 0;font-size:13.5px}
+
+/* Spec strip */
+.spec{display:grid;gap:18px 28px;padding:18px 20px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){.spec{grid-template-columns:1.4fr 1fr 1fr}}
+.spec h5{margin:0 0 10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+.lg{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px 16px}
+.lg li{display:flex;align-items:center;gap:10px}
+.lg svg{flex:none;width:56px;height:26px;overflow:visible}
+.lg b{display:block;font-size:12.5px;line-height:1.2}
+.lg small{display:block;font-size:11px;line-height:1.25}
+.sw{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.sw li{min-width:0}
+.sw i{display:block;height:30px;border-radius:6px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.sw b{display:block;font-size:11px;margin-top:4px;line-height:1.2;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sw code{font:10.5px "IBM Plex Mono",ui-monospace,monospace;opacity:.8}
+.ty{display:flex;flex-direction:column;gap:10px}
+.ty div{display:flex;align-items:baseline;gap:12px}
+.ty .aa{font-size:30px;line-height:1;flex:none;width:52px}
+.ty b{display:block;font-size:13px}
+.ty small{display:block;font-size:11px;opacity:.8}
+
+/* =========== 1. ARCHIVAL PAPER — Ledger & Ink =========== */
+.t-paper{background:#F4F0E6;color:#1E2733;font-family:Newsreader,Georgia,"Times New Roman",serif;--fx:#22364F}
+.t-paper :focus-visible{outline-color:#22364F}
+.t-paper .cwrap{background:#E9E4D8}
+.t-paper .canvas{background:radial-gradient(ellipse 70% 60% at 50% 45%,rgba(255,253,246,.55),transparent 75%),repeating-linear-gradient(to bottom,transparent 0 35px,rgba(34,54,79,.075) 35px 36px),#E9E4D8}
+.t-paper .ln-bio{stroke:#22364F;stroke-width:1.8;stroke-linecap:round}
+.t-paper .ln-adopt{stroke:#22364F;stroke-width:1.5;stroke-dasharray:6 4}
+.t-paper .ln-sp{stroke:#22364F;stroke-width:1.4}
+.t-paper .ln-div{stroke:#22364F;stroke-opacity:.3;stroke-width:1}
+.t-paper .ring circle{fill:none;stroke:#22364F;stroke-width:1.4}
+.t-paper .node{fill:#E9E4D8;stroke:#22364F;stroke-opacity:.45}
+.t-paper .card{background:#FBF8F1;border:1px solid #CFC6B4;border-radius:3px;box-shadow:inset 0 1px 0 #fff,0 10px 18px -12px rgba(50,35,10,.5)}
+.t-paper .card.sel{border-color:#22364F;box-shadow:0 0 0 1px #22364F,0 14px 24px -12px rgba(50,35,10,.55)}
+.t-paper .pt{width:52px;height:58px;border:3px solid #FFFDF8;outline:1px solid #CFC6B4;background:radial-gradient(ellipse at 50% 38%,#DCCAA6,#A68B60 70%,#77623F);overflow:visible}
+.t-paper .pt svg{fill:rgba(62,46,24,.55);overflow:hidden}
+.t-paper .corners{display:block;position:absolute;inset:-6px;pointer-events:none;background:linear-gradient(135deg,#2A2620 50%,transparent 50%) 0 0/11px 11px no-repeat,linear-gradient(225deg,#2A2620 50%,transparent 50%) 100% 0/11px 11px no-repeat,linear-gradient(45deg,#2A2620 50%,transparent 50%) 0 100%/11px 11px no-repeat,linear-gradient(315deg,#2A2620 50%,transparent 50%) 100% 100%/11px 11px no-repeat}
+.t-paper .fn{font-weight:600;font-size:16px;color:#1E2733}
+.t-paper .ln{font-family:"IBM Plex Mono",ui-monospace,monospace;color:#5A5446;font-size:8.5px}
+.t-paper .dt{font-family:"IBM Plex Mono",ui-monospace,monospace;color:#3D3A33;font-size:10px}
+.t-paper .note{font-family:Caveat,"Segoe Print",cursive;font-size:15px;color:#3B5A86;transform:rotate(-3deg);margin-top:0}
+.t-paper .badge{background:#22364F;color:#FBF8F1;border-radius:2px;font-family:"IBM Plex Mono",monospace}
+.t-paper .hdl{background:#22364F;color:#FBF8F1;box-shadow:0 0 0 3px #E9E4D8}
+.t-paper .hdl .lbl{font-family:Caveat,cursive;font-size:15px;color:#22364F;background:#FBF8F1;border:1px solid #CFC6B4}
+.t-paper .anno{font-family:Caveat,"Segoe Print",cursive;font-size:17px;color:#3B5A86}
+.t-paper .tb,.t-paper .zm,.t-paper .mm{background:rgba(251,248,241,.94);border:1px solid #CFC6B4;border-radius:3px;box-shadow:0 8px 16px -12px rgba(50,35,10,.45)}
+.t-paper .tb-title{font-style:italic;font-size:18px}
+.t-paper .tb-meta{font-family:"IBM Plex Mono",monospace;color:#5A5446;font-size:10px}
+.t-paper .tb-s{border-bottom:1px solid #22364F;color:#22364F}
+.t-paper .tb-s input{font-family:Newsreader,Georgia,serif;font-style:italic;font-size:14px;color:#1E2733}
+.t-paper .tb-s input::placeholder{color:#6B6556}
+.t-paper .zm button{color:#22364F}.t-paper .zm button:hover{background:#EFE9DC}
+.t-paper .zm-v{font-family:"IBM Plex Mono",monospace;color:#5A5446}
+.t-paper .mm rect{fill:#CFC6B4}.t-paper .mm .gh{fill:none;stroke:#CFC6B4;stroke-dasharray:6 6;stroke-width:3}.t-paper .mm .me{fill:#22364F}.t-paper .mm .vp{stroke:#3B5A86;stroke-width:10}
+.t-paper .foot{font-family:"IBM Plex Mono",monospace;font-size:10px;color:#5A5446;letter-spacing:.06em;text-transform:uppercase;border:1px solid rgba(34,54,79,.35);padding:6px 9px;transform:rotate(-1deg)}
+.t-paper .status{background:#22364F;color:#FBF8F1;font-family:"IBM Plex Mono",monospace;font-size:11px}
+.t-paper .drawer{background:#F4F0E6;border-left:1px solid #CFC6B4}
+.t-paper .dr-kicker,.t-paper .dr h4{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#5A5446;font-weight:500}
+.t-paper .dr-x{color:#22364F}.t-paper .dr-x:hover{background:#E9E4D8}
+.t-paper .dr-id .pt{width:72px;height:86px}
+.t-paper .dr-name{font-size:27px;font-weight:600;letter-spacing:-.01em}
+.t-paper .dr-name em{font-weight:400}
+.t-paper .dr-sub{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:#4A463C}
+.t-paper .dr-sub b{font-family:Caveat,cursive;font-size:16px;color:#3B5A86;font-weight:500}
+.t-paper .bio{font-size:15.5px;line-height:1.55}
+.t-paper .bio::first-letter{float:left;font-size:46px;line-height:.86;padding:4px 6px 0 0;font-weight:600;color:#22364F}
+.t-paper .ph .img{border:4px solid #FFFDF8;box-shadow:0 0 0 1px #CFC6B4,0 6px 10px -8px rgba(0,0,0,.5);filter:sepia(.85) saturate(.75) contrast(.95)}
+.t-paper .ph figcaption{font-family:Caveat,cursive;font-size:13.5px;line-height:1;color:#3B5A86}
+.t-paper .ph.more .img{filter:none;background:#EFE9DC;color:#22364F;font-family:"IBM Plex Mono",monospace;font-size:12px}
+.t-paper .audio{background:#FBF8F1;border:1px solid #CFC6B4;border-radius:2px;box-shadow:inset 0 0 0 4px #FBF8F1,inset 0 0 0 5px #E3DCCB}
+.t-paper .au-title{font-style:italic;font-size:16px}
+.t-paper .au-meta,.t-paper .time{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:#5A5446}
+.t-paper .play{background:#22364F;color:#FBF8F1}
+.t-paper .wave i{background:rgba(34,54,79,.22)}.t-paper .wave i.on{background:#22364F}
+.t-paper .rec{border:1px solid #22364F;border-radius:2px;color:#22364F;font-family:"IBM Plex Mono",monospace;font-size:11px}
+.t-paper .rec i{background:#9B2F25}
+.t-paper .rels li{border-bottom:1px dotted #CFC6B4}
+.t-paper .rels .rn{font-size:15px}.t-paper .rels .rr{font-family:"IBM Plex Mono",monospace;color:#5A5446;font-size:10px}
+.t-paper .spec{background:#EDE8DD;border-top:1px solid #CFC6B4}
+.t-paper .spec h5{font-family:"IBM Plex Mono",monospace;color:#5A5446;font-weight:500}
+.t-paper .lg small,.t-paper .ty small{color:#4A463C}
+
+/* =========== 2. DARK SLATE — Nocturne =========== */
+.t-slate{background:#141A21;color:#EEF0F2;font-family:Manrope,"Segoe UI",system-ui,sans-serif}
+.t-slate :focus-visible{outline-color:#F1CD8C}
+.t-slate .cwrap{background:#0E1318}
+.t-slate .canvas{background:radial-gradient(ellipse 55% 45% at 50% 42%,rgba(232,185,106,.11),transparent 72%),radial-gradient(circle at 1px 1px,rgba(255,255,255,.075) 1px,transparent 1.6px) 0 0/24px 24px,linear-gradient(#141B23,#0C1015)}
+.t-slate .ln-bio{stroke:#E8B96A;stroke-width:2;stroke-linecap:round}
+.t-slate .ln-adopt{stroke:#9FB8D9;stroke-width:2.4;stroke-dasharray:.1 6;stroke-linecap:round}
+.t-slate .ln-sp{stroke:#E8B96A;stroke-opacity:.7;stroke-width:1.4}
+.t-slate .ln-div{stroke:#7B8694;stroke-opacity:.5;stroke-width:1}
+.t-slate .ring circle{fill:none;stroke:#F1CD8C;stroke-width:1.6}
+.t-slate .node{fill:#0E1318;stroke:#7B8694}
+.t-slate .endpt{display:block;fill:#F1CD8C}
+.t-slate .card{background:linear-gradient(160deg,rgba(255,255,255,.11),rgba(255,255,255,.035));-webkit-backdrop-filter:blur(12px) saturate(140%);backdrop-filter:blur(12px) saturate(140%);border:1px solid rgba(255,255,255,.1);border-radius:20px;box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 18px 40px -18px rgba(0,0,0,.8)}
+.t-slate .card.sel{border-color:rgba(232,185,106,.7);box-shadow:0 0 0 1px rgba(232,185,106,.45),0 0 34px -6px rgba(232,185,106,.5),0 18px 40px -18px rgba(0,0,0,.8)}
+.t-slate .pt{width:58px;height:58px;border-radius:50%;background:radial-gradient(circle at 30% 25%,hsl(var(--h) 42% 52%),hsl(calc(var(--h) + 30) 38% 22%) 78%);box-shadow:0 0 0 2px #10151B,0 0 0 3px rgba(232,185,106,.35)}
+.t-slate .pt svg{display:none}
+.t-slate .ini{display:grid;place-items:center;height:100%;font:italic 26px/1 "Instrument Serif",Georgia,serif;color:#F6EBD6}
+.t-slate .fn{font-family:"Instrument Serif",Georgia,serif;font-size:19px;color:#F3F4F6}
+.t-slate .ln{color:#8E99A6;font-weight:600}
+.t-slate .dt{color:#BAC3CD;font-size:11px}
+.t-slate .note{color:#D8C49C;font-style:italic}
+.t-slate .badge{background:rgba(232,185,106,.16);color:#F1CD8C;border:1px solid rgba(232,185,106,.4);border-radius:9px}
+.t-slate .hdl{background:#1C232C;color:#F1CD8C;border:1px solid rgba(232,185,106,.65);box-shadow:0 0 14px -2px rgba(232,185,106,.45)}
+.t-slate .hdl .lbl{background:#1C232C;color:#EEF0F2;border:1px solid rgba(255,255,255,.12);border-radius:6px;font-weight:600}
+.t-slate .anno{font-size:10.5px;color:#C9B48A;letter-spacing:.08em;font-weight:600}
+.t-slate .tb,.t-slate .zm,.t-slate .mm{background:rgba(22,28,36,.72);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.09);border-radius:14px}
+.t-slate .tb-title{font-family:"Instrument Serif",Georgia,serif;font-size:20px}
+.t-slate .tb-meta{color:#8E99A6}
+.t-slate .tb-s{background:rgba(255,255,255,.06);border-radius:9px;color:#8E99A6}
+.t-slate .tb-s input{color:#EEF0F2}.t-slate .tb-s input::placeholder{color:#8E99A6}
+.t-slate .zm button{color:#E4E7EA;border-radius:10px}.t-slate .zm button:hover{background:rgba(255,255,255,.07)}
+.t-slate .zm-v{color:#8E99A6}
+.t-slate .mm rect{fill:#3A4552}.t-slate .mm .gh{fill:none;stroke:#3A4552;stroke-width:3;stroke-dasharray:6 6}.t-slate .mm .me{fill:#E8B96A}.t-slate .mm .vp{stroke:#F1CD8C;stroke-width:8;stroke-opacity:.8}
+.t-slate .foot{font-size:11px;color:#7F8A97}
+.t-slate .status{background:#E8B96A;color:#1A1408;border-radius:999px;font-weight:600}
+.t-slate .drawer{background:linear-gradient(180deg,#18202A,#121821);border-left:1px solid rgba(255,255,255,.08)}
+.t-slate .dr-kicker,.t-slate .dr h4{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:#8E99A6}
+.t-slate .dr-x{color:#C9D0D8}.t-slate .dr-x:hover{background:rgba(255,255,255,.07)}
+.t-slate .dr-name{font-family:"Instrument Serif",Georgia,serif;font-size:31px}
+.t-slate .dr-name em{color:#F1CD8C}
+.t-slate .dr-sub{color:#AEB7C1}
+.t-slate .dr-sub b{color:#D8C49C;font-weight:500}
+.t-slate .bio{font-size:14px;line-height:1.7;color:#C9D0D8}
+.t-slate .ph .img{border-radius:10px;filter:saturate(.6) brightness(.82);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.t-slate .ph figcaption{color:#8E99A6}
+.t-slate .ph.more .img{filter:none;background:rgba(255,255,255,.06);color:#F1CD8C}
+.t-slate .audio{background:linear-gradient(160deg,rgba(255,255,255,.08),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.1);border-radius:16px}
+.t-slate .au-title{font-family:"Instrument Serif",Georgia,serif;font-size:19px}
+.t-slate .au-meta,.t-slate .time{color:#8E99A6}
+.t-slate .play{background:#E8B96A;color:#1A1408;box-shadow:0 0 22px -4px rgba(232,185,106,.7)}
+.t-slate .wave i{background:#36414E}.t-slate .wave i.on{background:#E8B96A;box-shadow:0 0 6px rgba(232,185,106,.6)}
+.t-slate .rec{border:1px solid rgba(224,119,91,.55);border-radius:999px;color:#F2A894}
+.t-slate .rec i{background:#E0775B}
+.t-slate .rels li{border-bottom:1px solid rgba(255,255,255,.06)}
+.t-slate .rels .rn{font-family:"Instrument Serif",Georgia,serif;font-size:17px}.t-slate .rels .rr{color:#8E99A6}
+.t-slate .spec{background:#11171E;border-top:1px solid rgba(255,255,255,.07)}
+.t-slate .spec h5{color:#8E99A6}
+.t-slate .lg small,.t-slate .ty small{color:#AEB7C1}
+
+/* =========== 3. BOTANICAL — Herbarium =========== */
+.t-herb{background:#F1F2E8;color:#24301F;font-family:Figtree,"Segoe UI",system-ui,sans-serif}
+.t-herb :focus-visible{outline-color:#2F5638}
+.t-herb .cwrap{background:#E3E8DA}
+.t-herb .canvas{background:radial-gradient(ellipse 65% 55% at 50% 42%,#EEF1E7,#E1E7D8 75%)}
+.t-herb .fern{fill:#7FA36B;stroke:#5E8550;opacity:.28}
+.t-herb .flower{fill:#C98FA0;opacity:.45}
+.t-herb .ln-under{display:block;stroke:#7FA36B;stroke-opacity:.3;stroke-width:7;stroke-linecap:round}
+.t-herb .ln-bio{stroke:#3E6B48;stroke-width:2.2;stroke-linecap:round}
+.t-herb .leaf{display:block;fill:#7FA36B;stroke:#3E6B48;stroke-width:.7}
+.t-herb .ln-adopt{stroke:#8A6A4A;stroke-width:1.9;stroke-dasharray:8 3 2 3;stroke-linecap:round}
+.t-herb .ln-sp{stroke:#3E6B48;stroke-width:1.3}
+.t-herb .ln-div{stroke:#6E7A66;stroke-opacity:.5;stroke-width:1}
+.t-herb .ring circle{display:none}
+.t-herb .tendril{display:block;stroke:#3E6B48;stroke-width:1.5;stroke-linecap:round}
+.t-herb .ring .leaf{display:block}
+.t-herb .node{fill:#8A6A4A;stroke:none}
+.t-herb .card{background:#F7F6EE;border:1px solid #CBD3BE;border-radius:30px 8px 30px 8px;box-shadow:0 12px 22px -14px rgba(40,60,30,.5)}
+.t-herb .card.sel{border-color:#3E6B48;box-shadow:0 0 0 3px rgba(127,163,107,.4),0 12px 22px -14px rgba(40,60,30,.5)}
+.t-herb .tape{display:block;position:absolute;top:-7px;left:50%;width:44px;height:15px;margin-left:-22px;transform:rotate(-4deg);background:rgba(214,204,160,.8);clip-path:polygon(2% 0,98% 4%,100% 100%,0 96%);pointer-events:none}
+.t-herb .pt{width:56px;height:62px;border-radius:28px 28px 8px 8px;background:linear-gradient(170deg,hsl(var(--h) 26% 80%),hsl(var(--h) 18% 56%))}
+.t-herb .pt svg{fill:rgba(36,48,31,.45)}
+.t-herb .fn{font-family:"Young Serif",Georgia,serif;font-size:15px;color:#24301F}
+.t-herb .ln{color:#55634D;font-weight:600}
+.t-herb .dt{font-family:"Courier Prime","Courier New",monospace;color:#3E4A38;font-size:11px}
+.t-herb .note{font-family:"Courier Prime","Courier New",monospace;font-style:italic;color:#7A5C3E}
+.t-herb .badge{background:#3E6B48;color:#F7F6EE;border-radius:9px 3px 9px 3px;top:9px;right:9px}
+.t-herb .hdl{background:#3E6B48;color:#fff;box-shadow:0 0 0 3px #E3E8DA}
+.t-herb .hdl .lbl{background:#F7F6EE;color:#24301F;border:1px solid #CBD3BE;border-radius:8px 2px 8px 2px;font-weight:600}
+.t-herb .anno{font-family:"Courier Prime","Courier New",monospace;font-size:11px;color:#55634D}
+.t-herb .tb,.t-herb .zm,.t-herb .mm{background:rgba(247,246,238,.92);border:1px solid #CBD3BE;border-radius:20px 6px 20px 6px}
+.t-herb .tb-title{font-family:"Young Serif",Georgia,serif;font-size:17px}
+.t-herb .tb-meta{font-family:"Courier Prime",monospace;color:#55634D;font-size:11px}
+.t-herb .tb-s{background:#EBEEE2;border-radius:14px 4px 14px 4px;color:#55634D}
+.t-herb .tb-s input{color:#24301F}.t-herb .tb-s input::placeholder{color:#66735E}
+.t-herb .zm button{color:#2F5638;border-radius:10px}.t-herb .zm button:hover{background:#EBEEE2}
+.t-herb .zm-v{font-family:"Courier Prime",monospace;color:#55634D}
+.t-herb .mm rect{fill:#C6D0B9}.t-herb .mm .gh{fill:none;stroke:#C6D0B9;stroke-width:3;stroke-dasharray:6 6}.t-herb .mm .me{fill:#3E6B48}.t-herb .mm .vp{stroke:#7FA36B;stroke-width:9}
+.t-herb .foot{font-family:"Courier Prime",monospace;font-size:10.5px;color:#3E4A38;background:#F7F6EE;border:1px solid #CBD3BE;padding:7px 10px;line-height:1.35}
+.t-herb .foot b{display:block;font-weight:700;letter-spacing:.1em}
+.t-herb .status{background:#3E6B48;color:#F7F6EE;border-radius:14px 4px 14px 4px;font-weight:600}
+.t-herb .drawer{background:#F1F2E8;border-left:1px solid #CBD3BE}
+.t-herb .dr-kicker,.t-herb .dr h4{font-family:"Courier Prime",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#55634D;font-weight:700}
+.t-herb .dr-x{color:#2F5638}.t-herb .dr-x:hover{background:#E3E8DA}
+.t-herb .dr-id .pt{width:70px;height:80px;border-radius:35px 35px 10px 10px}
+.t-herb .dr-name{font-family:"Young Serif",Georgia,serif;font-size:25px}
+.t-herb .dr-sub{font-family:"Courier Prime",monospace;font-size:11.5px;color:#3E4A38}
+.t-herb .dr-sub b{color:#7A5C3E;font-weight:400;font-style:italic}
+.t-herb .bio{font-size:14.5px;line-height:1.62}
+.t-herb .ph .img{border-radius:14px 4px 14px 4px;filter:sepia(.25) saturate(.8)}
+.t-herb .ph:nth-child(odd) .img{transform:rotate(-1.5deg)}.t-herb .ph:nth-child(even) .img{transform:rotate(1.2deg)}
+.t-herb .ph figcaption{font-family:"Courier Prime",monospace;color:#3E4A38}
+.t-herb .ph.more .img{filter:none;background:#E3E8DA;color:#2F5638;border:1px dashed #7FA36B}
+.t-herb .audio{background:#F7F6EE;border:1px solid #CBD3BE;border-radius:24px 8px 24px 8px}
+.t-herb .au-title{font-family:"Young Serif",Georgia,serif;font-size:16px}
+.t-herb .au-meta,.t-herb .time{font-family:"Courier Prime",monospace;color:#55634D;font-size:11px}
+.t-herb .play{background:#3E6B48;color:#F7F6EE}
+.t-herb .wave i{background:#C6D0B9;border-radius:3px}.t-herb .wave i.on{background:#3E6B48}
+.t-herb .rec{border:1px solid #A9566B;border-radius:14px 4px 14px 4px;color:#8A3B4E;font-weight:600}
+.t-herb .rec i{background:#A9566B}
+.t-herb .rels li{border-bottom:1px solid #DDE2D2}
+.t-herb .rels .rn{font-family:"Young Serif",Georgia,serif;font-size:14.5px}.t-herb .rels .rr{font-family:"Courier Prime",monospace;color:#55634D}
+.t-herb .spec{background:#E9ECE0;border-top:1px solid #CBD3BE}
+.t-herb .spec h5{font-family:"Courier Prime",monospace;color:#55634D}
+.t-herb .lg small,.t-herb .ty small{color:#3E4A38}
+
+/* =========== 4. WILDCARD — Light Table (mid-century Kodachrome) =========== */
+.t-kodak{background:#FBF9F4;color:#23262B;font-family:Jost,"Century Gothic","Segoe UI",sans-serif}
+.t-kodak :focus-visible{outline-color:#B8452C}
+.t-kodak .cwrap{background:#E3EAE9}
+.t-kodak .canvas{background:repeating-linear-gradient(90deg,rgba(35,38,43,.055) 0 1px,transparent 1px 48px),repeating-linear-gradient(0deg,rgba(35,38,43,.055) 0 1px,transparent 1px 48px),radial-gradient(ellipse 70% 65% at 50% 45%,#FFFFFF,#E3EAE9 80%)}
+.t-kodak .ln-under{display:block;stroke:#FFFFFF;stroke-width:8;stroke-linecap:round}
+.t-kodak .ln-bio{stroke:#1F7A74;stroke-width:3.5;stroke-linecap:round}
+.t-kodak .ln-adopt{stroke:#D2553A;stroke-width:3.4;stroke-dasharray:.1 7.5;stroke-linecap:round}
+.t-kodak .ln-sp{stroke:#23262B;stroke-width:1.6}
+.t-kodak .ln-div{stroke:#23262B;stroke-opacity:.3;stroke-width:1.4}
+.t-kodak .ring circle{display:none}
+.t-kodak .atom{display:block;fill:none;stroke:#B07A16;stroke-width:1.8}
+.t-kodak .atom-dot{display:block;fill:#D2553A}
+.t-kodak .endpt{display:block;fill:#1F7A74;stroke:#fff;stroke-width:2}
+.t-kodak .node{fill:#fff;stroke:#23262B;stroke-opacity:.45}
+.t-kodak .card{background:#FBF9F4;border-radius:10px;box-shadow:inset 0 1px 0 #fff,0 0 0 1px rgba(35,38,43,.09),0 14px 22px -14px rgba(35,38,43,.5)}
+.t-kodak .card.sel::after{content:"";position:absolute;inset:-12px -14px;border:2.5px solid #D2553A;border-radius:50%;transform:rotate(-5deg);pointer-events:none;opacity:.85}
+.t-kodak .pt{width:78px;height:58px;border-radius:9px;background:linear-gradient(150deg,hsl(var(--h) 72% 63%),hsl(calc(var(--h) + 38) 66% 40%));box-shadow:inset 0 0 0 1px rgba(0,0,0,.18),inset 0 6px 12px -6px rgba(0,0,0,.35)}
+.t-kodak .pt svg{fill:rgba(18,18,28,.4);width:60px;margin:0 auto}
+.t-kodak .stamp{display:block;position:absolute;right:3px;top:14px;writing-mode:vertical-rl;font:500 7px/1 "IBM Plex Mono",monospace;letter-spacing:.22em;color:#A39E92;pointer-events:none}
+.t-kodak .fn{font-weight:600;font-size:13.5px;text-transform:uppercase;letter-spacing:.05em}
+.t-kodak .ln{color:#62666D;font-weight:500;letter-spacing:.2em}
+.t-kodak .dt{font-weight:500;font-size:11px}
+.t-kodak .note{font-style:italic;color:#B8452C}
+.t-kodak .badge{background:#D2553A;color:#fff;border-radius:3px;top:5px;right:5px}
+.t-kodak .hdl{background:#23262B;color:#fff;box-shadow:0 0 0 3px #fff}
+.t-kodak .hdl .lbl{background:#23262B;color:#fff;border-radius:3px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;font-size:9.5px}
+.t-kodak .anno{font-weight:600;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#1F7A74}
+.t-kodak .tb,.t-kodak .zm,.t-kodak .mm{background:#FBF9F4;border-radius:10px;box-shadow:0 0 0 1px rgba(35,38,43,.1),0 10px 18px -12px rgba(35,38,43,.45)}
+.t-kodak .tb-title{font-weight:600;text-transform:uppercase;letter-spacing:.08em;font-size:14px}
+.t-kodak .tb-meta{color:#62666D;font-size:11.5px}
+.t-kodak .tb-s{background:#EEF2F1;border-radius:6px;color:#62666D}
+.t-kodak .tb-s input{color:#23262B}.t-kodak .tb-s input::placeholder{color:#6A6E75}
+.t-kodak .zm button{color:#23262B;border-radius:6px}.t-kodak .zm button:hover{background:#EEF2F1}
+.t-kodak .zm-v{font-family:"IBM Plex Mono",monospace;color:#62666D}
+.t-kodak .mm{background:#23262B}
+.t-kodak .mm rect{fill:#5C6168}.t-kodak .mm .gh{fill:none;stroke:#5C6168;stroke-width:3;stroke-dasharray:6 6}.t-kodak .mm .me{fill:#E7B54A}.t-kodak .mm .vp{stroke:#E7B54A;stroke-width:8}
+.t-kodak .foot{font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:#1F7A74;padding:6px 10px;border-radius:3px}
+.t-kodak .status{background:#23262B;color:#fff;border-radius:4px;font-weight:500}
+.t-kodak .drawer{background:#FBF9F4;border-left:1px solid #DCD8CE}
+.t-kodak .dr-kicker,.t-kodak .dr h4{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#1F7A74;font-weight:600}
+.t-kodak .dr-x{color:#23262B}.t-kodak .dr-x:hover{background:#EEF2F1}
+.t-kodak .dr-id{background:#E7B54A;margin:0 -20px;padding:14px 20px}
+.t-kodak .dr-id .pt{width:92px;height:70px;border:6px solid #FBF9F4;box-sizing:content-box;border-radius:12px}
+.t-kodak .dr-name{font-size:24px;font-weight:500;line-height:1.05}
+.t-kodak .dr-sub{color:#3A3326;font-size:12.5px}
+.t-kodak .dr-sub b{font-weight:600}
+.t-kodak .bio{font-size:15px;line-height:1.6}
+.t-kodak .ph .img{border:5px solid #fff;border-radius:6px;box-shadow:0 0 0 1px rgba(35,38,43,.1),0 6px 10px -8px rgba(0,0,0,.55);filter:saturate(1.35) contrast(1.05)}
+.t-kodak .ph figcaption{font-weight:500;color:#45484E}
+.t-kodak .ph.more .img{filter:none;background:#23262B;color:#E7B54A;border-color:#23262B}
+.t-kodak .audio{background:#23262B;color:#fff;border-radius:12px}
+.t-kodak .au-title{font-weight:500;font-size:16px}
+.t-kodak .au-meta,.t-kodak .time{color:#B4B8BE;font-family:"IBM Plex Mono",monospace;font-size:10.5px}
+.t-kodak .play{background:#D2553A;color:#fff}
+.t-kodak .wave i{background:#4A4F57;border-radius:1px}.t-kodak .wave i.on{background:#E7B54A}
+.t-kodak .rec{border:1px solid #6A6F77;border-radius:4px;color:#fff;font-weight:500;text-transform:uppercase;letter-spacing:.1em;font-size:10.5px}
+.t-kodak .rec i{background:#E8644A}
+.t-kodak .au-empty{color:#D7DADF}
+.t-kodak .rels li{border-bottom:1px solid #E6E2D8}
+.t-kodak .rels .rn{font-weight:500;font-size:15px}.t-kodak .rels .rr{color:#62666D;text-transform:uppercase;letter-spacing:.1em;font-size:10px}
+.t-kodak .spec{background:#F1EEE6;border-top:1px solid #DCD8CE}
+.t-kodak .spec h5{color:#1F7A74}
+.t-kodak .lg small,.t-kodak .ty small{color:#45484E}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{transition-duration:.01ms !important;animation-duration:.01ms !important;animation-iteration-count:1 !important}
+  .card:hover{transform:none}
+}
+</style>
+
+<div class="page">
+  <header class="top">
+    <div>
+      <h1>Family Tree &amp; Living Archive: four style directions</h1>
+      <p>“Heirloom Modern”, interpreted four ways. Each tab shows the same family and the same main screen: the tree canvas, a hovered card with its add handles, the voice-memory badge, the mini-map and zoom, and the profile drawer. Drag the canvas to pan, use the zoom buttons, click any card to open it, and press “Replay bloom” to see a new member arrive.</p>
+    </div>
+    <button class="theme-btn" id="themeBtn" type="button" aria-label="Page theme: automatic. Change theme">Page theme: Auto</button>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Style directions" id="tabs"></div>
+  <main id="panels"></main>
+
+  <div class="notes">
+    <section>
+      <h3>The same in every direction</h3>
+      <ul>
+        <li>Line meaning never relies on colour alone: solid = birth, broken = adoptive/step, rings = partners, a gap plus a faded line = former partners.</li>
+        <li>Primary action per card is “open profile”; add handles appear on hover or keyboard focus only.</li>
+        <li>New members animate in two beats: the root draws (650 ms, ease-out), then the card blooms (600 ms, slight overshoot). Reduced motion turns this into a 200 ms fade.</li>
+      </ul>
+    </section>
+    <section>
+      <h3>How to compare</h3>
+      <ul>
+        <li>Squint at each canvas: can you still tell the four relationship types apart?</li>
+        <li>Read the drawer bio: this is where people will spend real time.</li>
+        <li>Imagine 200 people: which style still feels calm when zoomed out?</li>
+      </ul>
+    </section>
+    <section>
+      <h3>Designer’s pick</h3>
+      <p>Archival Paper as the light theme, with Dark Slate as its dark mode. They share a structure (editorial serif plus one utility face, ink or lamplight roots), so one component set can serve both. Herbarium and Light Table work better as optional “album covers” than as the everyday default.</p>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+/* ---------------- Data ---------------- */
+var P = {
+  walter:  {f:"Walter", l:"Ashby", b:1938, d:2019, g:"m", h:28,  x:400, y:30,  audio:2, sub:"b. 2 Nov 1938, Hull · d. 2019, York"},
+  margaret:{f:"Margaret", l:"Ashby", nick:"Peggy", nee:"Lund", b:1941, g:"f", h:350, x:556, y:30, audio:3, sub:"b. 14 Mar 1941, Karlstad, Sweden · lives in York"},
+  tomas:   {f:"Tomás", l:"Reyes", b:1962, g:"m", h:200, x:88,  y:250, sub:"b. 1962, Valparaíso, Chile"},
+  eleanor: {f:"Eleanor", l:"Reyes", nee:"Ashby", b:1964, g:"f", h:12, x:244, y:250, sub:"b. 1964, Hull"},
+  samuel:  {f:"Samuel", l:"Ashby", b:1970, g:"m", h:160, x:400, y:250, note:"adopted 1974", sub:"b. 1970, Leeds · joined the family 1974"},
+  claire:  {f:"Claire", l:"Moreau", b:1969, g:"f", h:280, x:556, y:250, sub:"b. 1969, Lyon, France"},
+  daniel:  {f:"Daniel", l:"Ashby", b:1967, g:"m", h:40,  x:712, y:250, sub:"b. 1967, Hull · lives in Bristol"},
+  priya:   {f:"Priya", l:"Nair", b:1972, g:"f", h:322, x:868, y:250, sub:"b. 1972, Kochi, India"},
+  lucia:   {f:"Lucia", l:"Reyes", b:1993, g:"f", h:110, x:166, y:470, sub:"b. 1993, Manchester"},
+  june:    {f:"June", l:"Ashby", b:1998, g:"f", h:190, x:634, y:470, sub:"b. 1998, Bristol"},
+  theo:    {f:"Theo", l:"Ashby", b:2008, g:"m", h:62,  x:790, y:470, note:"just added", sub:"b. 2008, Bristol"}
+};
+var BIO = {
+  walter:"Walter ran the chandlery on Humber Street for thirty years and could tie a bowline one-handed. In 1998 he recorded six cassettes of sea stories; three are digitised here so far.",
+  margaret:"Peggy came to Hull in 1959 to sew for Rosen & Co., and met Walter at a dance hall that flooded the same night. She kept the household accounts in a green ledger for fifty-one years, and still writes every grandchild a letter on their birthday.",
+  tomas:"Tomás came from Valparaíso to study naval architecture and stayed for Eleanor. He makes empanadas for every family birthday from his mother’s handwritten recipe card.",
+  eleanor:"Eleanor taught music at St Peter’s for thirty-four years. The upright piano in so many family photos was Walter’s wedding gift to Peggy.",
+  samuel:"Samuel joined the Ashbys at four, in the summer of 1974. He looks after the family’s photo archive and scanned most of what you see in this tree.",
+  claire:"Claire and Daniel were married from 1994 to 2003. She lives in Lyon, and June spends every August with her.",
+  daniel:"Daniel is a civil engineer who has since rebuilt two of the bridges his father used to sail under.",
+  priya:"Priya, a paediatric nurse from Kochi, married Daniel in 2006 and helped raise June from the age of eight.",
+  lucia:"Lucia is the family’s recorder-in-chief: most of Peggy’s voice memories were captured on her phone at Sunday lunch.",
+  june:"June studies textile conservation and is restoring Peggy’s 1962 wedding dress, one seam at a time.",
+  theo:"Theo is the youngest Ashby and the newest leaf on the tree. His profile is waiting for its first story."
+};
+var AUDIO = {
+  margaret:{title:"The night the dance hall flooded", meta:"Recorded by Lucia · March 2024", dur:168, t:52},
+  walter:{title:"Sea stories, tape 3 of 6", meta:"Walter’s own cassette · 1998, digitised 2021", dur:252, t:0}
+};
+var GAL = {
+  margaret:["Karlstad, 1955","Wedding, 1962","Bridlington, 1971"],
+  walter:["Humber St, 1966","Wedding, 1962","Whitby, 1980"]
+};
+var COUPLES = [
+  {a:"walter", b:"margaret", t:"sp", yrs:"1962–2019", anno:"m. 1962"},
+  {a:"tomas", b:"eleanor", t:"sp", yrs:"m. 1990", anno:"m. 1990"},
+  {a:"claire", b:"daniel", t:"div", yrs:"1994–2003"},
+  {a:"daniel", b:"priya", t:"sp", yrs:"m. 2006", anno:"m. 2006"}
+];
+var KIDS = [
+  {from:["walter","margaret"], to:"eleanor", t:"bio"},
+  {from:["walter","margaret"], to:"samuel", t:"adopt"},
+  {from:["walter","margaret"], to:"daniel", t:"bio"},
+  {from:["tomas","eleanor"], to:"lucia", t:"bio"},
+  {from:["claire","daniel"], to:"june", t:"bio"},
+  {from:["daniel","priya"], to:"theo", t:"bio", bloom:true},
+  {from:["priya"], to:"june", t:"step", pts:[[858,400],[858,445],[690,425],[668,470]]}
+];
+var GHOSTS = [[320,-190],[476,-190],[640,-190],[796,-190],[-180,250],[1070,250],[1070,30]];
+
+var THEMES = [
+  {k:"paper", tab:"Archival Paper", name:"Ledger & Ink", dots:["#E9E4D8","#22364F","#9C8259"],
+   mood:"Quiet and scholarly, like the flyleaf of a family Bible annotated in fountain pen: museum-board paper, iron-gall ink roots with a slightly hand-drawn edge, photos held in black corners, pencil notes in the margins.",
+   suits:"genealogists and older relatives, families who print and frame their tree, anyone who wants the archive to feel authoritative.",
+   foot:"Ledger No. 1 · compiled 1962–2024",
+   sw:[["Museum board","#E9E4D8"],["Index card","#FBF8F1"],["Iron-gall ink","#22364F"],["Pencil blue","#3B5A86"],["Albumen sepia","#9C8259"],["Photo corner","#2A2620"]],
+   ty:[['Newsreader, Georgia, serif',"Newsreader","Names, biographies, headings"],['"IBM Plex Mono", ui-monospace, monospace',"IBM Plex Mono","Ledger dates · 1938 – 2019"],['Caveat, "Segoe Print", cursive',"Caveat","Handwritten notes and captions"]],
+   bloomFrom:"translateY(-14px) scale(.6)"},
+  {k:"slate", tab:"Dark Slate", name:"Nocturne", dots:["#0F141A","#E8B96A","#9FB8D9"],
+   mood:"Lamplit and cinematic: frosted-glass portraits float over a deep slate canvas, joined by softly glowing gold roots, with adoptive lines in cool moonlight blue.",
+   suits:"evening storytelling and screen-sharing on a TV, OLED phones and laptops, younger relatives who live in dark mode.",
+   foot:"Drag to pan · pinch or Ctrl + scroll to zoom",
+   sw:[["Night slate","#0F141A"],["Glass","#1C232C"],["Lamplight","#E8B96A"],["Moonlight","#9FB8D9"],["Mist","#EEF0F2"],["Ember","#E0775B"]],
+   ty:[['"Instrument Serif", Georgia, serif',"Instrument Serif","Names and headings"],['Manrope, "Segoe UI", sans-serif',"Manrope","Interface, biographies, dates"]],
+   bloomFrom:"translateY(-10px) scale(.7)"},
+  {k:"herb", tab:"Herbarium", name:"Herbarium", dots:["#E4E9DC","#3E6B48","#C98FA0"],
+   mood:"A pressed-specimen sheet where the family really grows: roots sprout leaves, partners are joined by twining tendrils, adoption is shown as a graft, and each card is taped down like a specimen with a typed label.",
+   suits:"warm, gift-like family projects, young families recording their children’s first years, and people who find standard tree diagrams too cold.",
+   foot:"",
+   sw:[["Herbarium sheet","#E4E9DC"],["Specimen card","#F7F6EE"],["Moss","#3E6B48"],["Young fern","#7FA36B"],["Graft bark","#8A6A4A"],["Pressed petal","#A9566B"]],
+   ty:[['"Young Serif", Georgia, serif',"Young Serif","Names and headings"],['Figtree, "Segoe UI", sans-serif',"Figtree","Interface and biographies"],['"Courier Prime", "Courier New", monospace',"Courier Prime","Specimen labels and dates"]],
+   bloomFrom:"translateY(-14px) scale(.5) rotate(-8deg)"},
+  {k:"kodak", tab:"Light Table", name:"Light Table (wildcard)", dots:["#EAF0EF","#1F7A74","#D2553A"],
+   mood:"The risky one: mid-century Kodachrome slides laid out on a glowing lightbox. Cards are slide mounts, roots are bold teal ribbons, partners get an atomic-age orbit, and the selected person is circled in grease pencil.",
+   suits:"families whose archive is slides and home movies, and anyone who wants the tree to feel joyful rather than solemn. The trade-off: it is loud, and less suited to remembering the dead.",
+   foot:"Tray 3 · Ashby family 1962–2024",
+   sw:[["Light table","#EAF0EF"],["Slide mount","#FBF9F4"],["Kodachrome teal","#1F7A74"],["Mustard","#D9A23A"],["Tomato","#D2553A"],["Carbon","#23262B"]],
+   ty:[['Jost, "Century Gothic", sans-serif',"Jost","Everything: names, interface, body"],['"IBM Plex Mono", ui-monospace, monospace',"IBM Plex Mono","Slide stamps and timecodes"]],
+   bloomFrom:"translateY(-6px) scale(1.18)"}
+];
+
+/* ---------------- Helpers ---------------- */
+var SIL = '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="25" r="11"/><path d="M11 64c0-15 9-23 21-23s21 8 21 23z"/></svg>';
+var I = {
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  minus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg>',
+  plusZ:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  fit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>',
+  search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+  play:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>',
+  pause:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>',
+  x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+  replay:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>'
+};
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+function full(p){return p.f+" "+p.l}
+function dates(p){return p.d ? p.b+" – "+p.d : "b. "+p.b}
+function ini(p){return p.f[0]+p.l[0]}
+function portrait(p){return '<div class="pt" style="--h:'+p.h+'">'+SIL+'<span class="ini">'+ini(p)+'</span><span class="corners"></span></div>'}
+function bez(P0,P1,P2,P3,t){var u=1-t;return [u*u*u*P0[0]+3*u*u*t*P1[0]+3*u*t*t*P2[0]+t*t*t*P3[0], u*u*u*P0[1]+3*u*u*t*P1[1]+3*u*t*t*P2[1]+t*t*t*P3[1]]}
+function bezD(P0,P1,P2,P3,t){var u=1-t;return [3*u*u*(P1[0]-P0[0])+6*u*t*(P2[0]-P1[0])+3*t*t*(P3[0]-P2[0]), 3*u*u*(P1[1]-P0[1])+6*u*t*(P2[1]-P1[1])+3*t*t*(P3[1]-P2[1])]}
+var LEAF = "M0 0C3-4.5 9-5 13 0C9 5 3 4.5 0 0Z";
+function coupleMid(ids){
+  for(var i=0;i<COUPLES.length;i++){var c=COUPLES[i];
+    if((c.a===ids[0]&&c.b===ids[1])||(c.a===ids[1]&&c.b===ids[0])){var a=P[c.a],b=P[c.b];return [(a.x+58+b.x-58)/2, a.y+75];}}
+}
+function kidPts(k){
+  if(k.pts) return k.pts;
+  var m=coupleMid(k.from), c=P[k.to], y0=m[1]+8, top=c.y;
+  if(Math.abs(m[0]-c.x)<5) return [[m[0],y0],[m[0]+14,y0+67],[c.x-14,top-60],[c.x,top]];
+  return [[m[0],y0],[m[0],y0+92],[c.x,top-65],[c.x,top]];
+}
+function d(pts){return "M"+pts[0]+"C"+pts[1]+" "+pts[2]+" "+pts[3]}
+
+/* ---------------- Builders ---------------- */
+function fx(k){
+  if(k==="paper") return '<filter id="fx-paper" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter><filter id="grain-paper"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="3" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 .32  0 0 0 0 .26  0 0 0 0 .16  .22 0 0 0 -.06"/></filter>';
+  if(k==="slate") return '<filter id="fx-slate" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="3.2" result="b"/><feColorMatrix in="b" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 .9 0" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
+  return "";
+}
+function fern(x,y,r,s){
+  var o='<g class="fern" transform="translate('+x+' '+y+') rotate('+r+') scale('+s+')"><path d="M0 0Q8-70 0-150" fill="none" stroke-width="1.6"/>';
+  for(var i=0;i<11;i++){var yy=-14-i*12.5, w=11-i*.75;
+    o+='<ellipse cx="'+(w+1)+'" cy="'+yy+'" rx="'+w+'" ry="3.2" transform="rotate(-32 0 '+yy+')"/><ellipse cx="'+(-w-1)+'" cy="'+yy+'" rx="'+w+'" ry="3.2" transform="rotate(32 0 '+yy+')"/>';}
+  return o+'</g>';
+}
+function flower(x,y){
+  var o='<g transform="translate('+x+' '+y+')">';
+  for(var i=0;i<5;i++) o+='<ellipse class="flower" cx="0" cy="-8" rx="4.5" ry="8" transform="rotate('+(i*72)+')"/>';
+  return o+'<circle r="3" fill="#B8954A" opacity=".6"/></g>';
+}
+function bgdeco(k){
+  if(k==="paper") return '<rect width="960" height="740" filter="url(#grain-paper)"/>';
+  if(k==="herb") return fern(28,760,24,1.25)+fern(735,-8,168,.9)+fern(950,470,-150,.7)+flower(905,212)+flower(300,712);
+  return "";
+}
+function leaves(pts,herb){
+  if(!herb) return "";
+  var len=Math.hypot(pts[3][0]-pts[0][0],pts[3][1]-pts[0][1]), ts=len>180?[.3,.62]:[.5], o="";
+  ts.forEach(function(t,i){var p=bez(pts[0],pts[1],pts[2],pts[3],t), dd=bezD(pts[0],pts[1],pts[2],pts[3],t), a=Math.atan2(dd[1],dd[0])*180/Math.PI + (i%2?55:-55);
+    o+='<path class="leaf" d="'+LEAF+'" transform="translate('+p[0].toFixed(1)+' '+p[1].toFixed(1)+') rotate('+a.toFixed(1)+')"/>';});
+  return o;
+}
+function linesSVG(t){
+  var k=t.k, herb=k==="herb", o='<svg class="links" viewBox="0 0 960 740" width="960" height="740" aria-hidden="true"><defs>'+fx(k)+'</defs><g class="bgdeco">'+bgdeco(k)+'</g><g class="lines"'+((k==="paper"||k==="slate")?' filter="url(#fx-'+k+')"':'')+'>';
+  COUPLES.forEach(function(c){
+    var a=P[c.a], b=P[c.b], y=a.y+75, x1=a.x+58, x2=b.x-58, mx=(x1+x2)/2;
+    if(c.t==="div"){
+      o+='<path class="ln-div" d="M'+x1+' '+y+'H'+(mx-7)+'M'+(mx+7)+' '+y+'H'+x2+'"/><circle class="node" cx="'+mx+'" cy="'+(y+8)+'" r="3"/>';
+    } else {
+      o+='<line class="ln-sp" x1="'+x1+'" y1="'+y+'" x2="'+x2+'" y2="'+y+'"/><g class="ring" transform="translate('+mx+' '+y+')"><circle cx="-5" r="7"/><circle cx="5" r="7"/><path class="tendril" d="M-14 0C-8-9-3 8 2 0S10-7 14 0M-14 0C-8 9-3-8 2 0S10 7 14 0"/><path class="leaf" d="'+LEAF+'" transform="translate(1 -1) rotate(-70) scale(.7)"/><ellipse class="atom" rx="12" ry="4.6" transform="rotate(32)"/><ellipse class="atom" rx="12" ry="4.6" transform="rotate(-32)"/><circle class="atom-dot" r="2.8"/></g>';
+    }
+  });
+  KIDS.forEach(function(kd){
+    var pts=kidPts(kd), dd=d(pts), g="";
+    if(kd.t==="bio"){
+      var pl=kd.bloom?' pathLength="1"':'';
+      g+='<path class="ln-under" d="'+dd+'"'+pl+'/><path class="ln-bio" d="'+dd+'"'+pl+'/>'+leaves(pts,herb)+'<circle class="endpt" cx="'+pts[3][0]+'" cy="'+pts[3][1]+'" r="4"/>';
+    } else {
+      g+='<path class="ln-adopt" d="'+dd+'"/><circle class="endpt" cx="'+pts[3][0]+'" cy="'+pts[3][1]+'" r="3.4"/>';
+    }
+    o+= kd.bloom ? '<g class="bloomg">'+g+'</g>' : g;
+  });
+  return o+'</g></svg>';
+}
+function cardHTML(id,t){
+  var p=P[id], lbl=full(p)+", "+(p.d?"1938 to 2019":"born "+p.b)+(p.audio?", "+p.audio+" voice memories":"")+". Open profile";
+  var note = p.nee ? "née "+p.nee : (p.note||"");
+  var h=[["t","Parent"],["l","Sibling"],["r","Partner"],["b","Child"]].map(function(x){
+    return '<button class="hdl '+x[0]+'" type="button" data-add="'+x[1]+'" aria-label="Add '+x[1].toLowerCase()+' for '+esc(full(p))+'">'+I.plus+'<span class="lbl">'+x[1]+'</span></button>';}).join("");
+  return '<div class="card'+(id==="samuel"?" is-hover":"")+'" data-id="'+id+'" style="left:'+(p.x-58)+'px;top:'+p.y+'px"><span class="tape"></span>'+
+    '<button class="card-main" type="button" aria-label="'+esc(lbl)+'">'+portrait(p)+
+    '<span class="nm"><span class="fn">'+esc(p.f)+'</span><span class="ln">'+esc(p.l)+'</span></span><span class="dt">'+dates(p)+'</span>'+(note?'<span class="note">'+esc(note)+'</span>':'')+'</button>'+
+    (p.audio?'<span class="badge" aria-hidden="true"><i></i><i></i><i></i><i></i><em>'+p.audio+'</em></span>':'')+
+    '<span class="stamp" aria-hidden="true">KODACHROME</span>'+h+'</div>';
+}
+function minimap(){
+  var o='<div class="mm" aria-label="Mini-map of the whole tree" role="img"><svg viewBox="-220 -220 1400 1080" preserveAspectRatio="xMidYMid meet">';
+  GHOSTS.forEach(function(g){o+='<rect class="gh" x="'+(g[0]-58)+'" y="'+g[1]+'" width="116" height="150" rx="14"/>';});
+  Object.keys(P).forEach(function(id){var p=P[id];o+='<rect class="'+(id==="margaret"?"me":"")+'" data-mm="'+id+'" x="'+(p.x-58)+'" y="'+p.y+'" width="116" height="150" rx="14"/>';});
+  return o+'<rect class="vp" x="0" y="0" width="960" height="740" rx="10"/></svg></div>';
+}
+function canvasHTML(t){
+  var annos = COUPLES.filter(function(c){return c.anno}).map(function(c){var a=P[c.a],b=P[c.b];return '<span class="anno" style="left:'+((a.x+b.x)/2)+'px;top:'+(a.y-23)+'px">'+c.anno+'</span>';}).join("")+
+    '<span class="anno" style="left:590px;top:416px">div. 2003</span>';
+  var foot = t.k==="herb" ? '<p class="foot"><b>HERB. ASHBY–LUND</b>Sheet 1 of 4 · coll. 1938–2024<br>det. S. Ashby</p>' : '<p class="foot">'+t.foot+'</p>';
+  return '<div class="tree">'+linesSVG(t)+annos+Object.keys(P).map(function(id){return cardHTML(id,t)}).join("")+'</div>'+
+    '<div class="tb"><div><span class="tb-title">The Ashby–Lund Family</span><span class="tb-meta">3 generations · 11 people · 14 voice memories</span></div><label class="tb-s">'+I.search+'<input type="search" placeholder="Find a relative" aria-label="Find a relative"></label></div>'+
+    '<div class="zm" role="group" aria-label="Zoom"><button type="button" data-z="in" aria-label="Zoom in">'+I.plusZ+'</button><span class="zm-v" aria-live="polite">100%</span><button type="button" data-z="out" aria-label="Zoom out">'+I.minus+'</button><button type="button" data-z="fit" aria-label="Fit tree to screen">'+I.fit+'</button></div>'+
+    minimap()+foot+'<p class="status" role="status" aria-live="polite"></p>';
+}
+var WAVE=(function(){var a=[],s=7;for(var i=0;i<46;i++){s=(s*9301+49297)%233280;var r=s/233280;a.push(Math.round(18+70*Math.abs(Math.sin(i*.55)*Math.cos(i*.21+1))*.85+r*22));}return a})();
+function fmt(s){s=Math.floor(s);return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+function photo(i,cap){
+  var v=[["#9BB7C9","#DCE6EA","#6F8A5B","#F3E2B5",1],["#C9B9A6","#E9DFD2","#8D7B69","rgba(255,255,255,0)",2],["#7FB2D6","#CFE4EE","#E3CFA4","#FFF1C9",3]][i];
+  var figs="", xs=v[4]===1?[30]:v[4]===2?[25,35]:[18,30,42];
+  xs.forEach(function(x,j){figs+='<circle cx="'+x+'" cy="'+(14+(j%2))+'" r="3.4"/><rect x="'+(x-4.5)+'" y="'+(18+(j%2))+'" width="9" height="22" rx="4"/>';});
+  return '<figure class="ph"><div class="img" style="--s1:'+v[0]+';--s2:'+v[1]+';--g:'+v[2]+';--sun:'+v[3]+'"><svg viewBox="0 0 60 45" aria-hidden="true"><g fill="rgba(35,28,20,.55)">'+figs+'</g></svg></div><figcaption>'+esc(cap)+'</figcaption></figure>';
+}
+function relSVG(type){
+  if(type==="sp") return '<svg viewBox="0 0 30 12" aria-hidden="true"><line class="ln-sp" x1="0" y1="6" x2="30" y2="6"/><g class="ring" transform="translate(15 6) scale(.6)"><circle cx="-5" r="7"/><circle cx="5" r="7"/><path class="tendril" d="M-14 0C-8-9-3 8 2 0S10-7 14 0M-14 0C-8 9-3-8 2 0S10 7 14 0"/><ellipse class="atom" rx="12" ry="4.6" transform="rotate(32)"/><ellipse class="atom" rx="12" ry="4.6" transform="rotate(-32)"/><circle class="atom-dot" r="2.8"/></g></svg>';
+  if(type==="div") return '<svg viewBox="0 0 30 12" aria-hidden="true"><path class="ln-div" d="M0 6H11M19 6H30"/></svg>';
+  if(type==="bio") return '<svg viewBox="0 0 30 12" aria-hidden="true"><path class="ln-under" d="M1 10C10 10 18 2 29 2"/><path class="ln-bio" d="M1 10C10 10 18 2 29 2"/></svg>';
+  return '<svg viewBox="0 0 30 12" aria-hidden="true"><path class="ln-adopt" d="M1 10C10 10 18 2 29 2"/></svg>';
+}
+function rels(id){
+  var me=P[id], out=[];
+  function w(p,m,f){return p.g==="m"?m:f}
+  COUPLES.forEach(function(c){
+    if(c.a===id||c.b===id){var o=P[c.a===id?c.b:c.a];
+      out.push([full(o), c.t==="div" ? w(o,"Former husband","Former wife")+" · "+c.yrs : w(o,"Husband","Wife")+" · "+c.yrs, c.t]);}
+  });
+  KIDS.forEach(function(k){
+    if(k.to===id) k.from.forEach(function(pid){var o=P[pid];
+      out.push([full(o), k.t==="adopt"?w(o,"Adoptive father","Adoptive mother"):k.t==="step"?w(o,"Stepfather","Stepmother"):w(o,"Father","Mother"), k.t==="bio"?"bio":"adopt"]);});
+    if(k.from.indexOf(id)>-1){var o=P[k.to];
+      out.push([full(o), k.t==="adopt"?w(o,"Son, adopted 1974","Daughter, adopted"):k.t==="step"?w(o,"Stepson","Stepdaughter"):w(o,"Son","Daughter"), k.t==="bio"?"bio":"adopt"]);}
+  });
+  return out;
+}
+function drawerHTML(id){
+  if(!id) return '<div class="dr-top"><span class="dr-kicker">Profile</span></div><div class="empty-dr"><b>No one selected</b><p>Choose a person on the tree to open their story, photos and voice memories.</p></div>';
+  var p=P[id], au=AUDIO[id], gal=GAL[id]||["Childhood, "+(p.b+7),"Portrait, "+(p.b+19),"Family, "+Math.min(2024,p.b+31)];
+  var name = esc(p.f)+(p.nick?' <em>“'+p.nick+'”</em>':'')+' '+esc(p.l);
+  var sub = (p.nee?'<b>née '+p.nee+'</b> · ':'')+esc(p.sub);
+  var audio = au ?
+    '<div class="audio" data-dur="'+au.dur+'" data-t="'+au.t+'"><p class="au-title">'+esc(au.title)+'</p><p class="au-meta">'+esc(au.meta)+'</p>'+
+    '<div class="au-row"><button class="play" type="button" aria-label="Play “'+esc(au.title)+'”">'+I.play+'</button><div class="wave" aria-hidden="true">'+WAVE.map(function(h){return '<i style="height:'+h+'%"></i>'}).join("")+'</div></div>'+
+    '<div class="au-foot"><span class="time">'+fmt(au.t)+' / '+fmt(au.dur)+'</span><button class="rec" type="button" aria-pressed="false"><i></i><span>Record a memory</span></button></div></div>'
+    : '<div class="audio"><p class="au-empty">No voice memories yet. Ask '+esc(p.f)+' about a favourite place, or record someone telling a story about them.</p><button class="rec" type="button" aria-pressed="false"><i></i><span>Record the first one</span></button></div>';
+  return '<div class="dr-top"><span class="dr-kicker">Profile</span><button class="dr-x" type="button" aria-label="Close profile">'+I.x+'</button></div>'+
+    '<div class="dr-id">'+portrait(p)+'<div><h3 class="dr-name">'+name+'</h3><p class="dr-sub">'+(p.d?p.b+" – "+p.d+" · ":"")+sub+'</p></div></div>'+
+    '<section><h4>Story</h4><p class="bio">'+esc(BIO[id])+'</p></section>'+
+    '<section><h4>Voice memories <span>'+(p.audio||0)+'</span></h4>'+audio+'</section>'+
+    '<section><h4>Photos <span>'+(id==="margaret"?16:id==="theo"?3:9)+'</span></h4><div class="gal">'+gal.map(function(c,i){return photo(i,c)}).join("")+'<figure class="ph more"><div class="img">+'+(id==="margaret"?13:id==="theo"?0:6)+'</div><figcaption>More</figcaption></figure></div></section>'+
+    '<section><h4>Family</h4><ul class="rels">'+rels(id).map(function(r){return '<li>'+relSVG(r[2])+'<span class="rn">'+esc(r[0])+'</span><span class="rr">'+esc(r[1])+'</span></li>'}).join("")+'</ul></section>';
+}
+function legend(){
+  var items=[
+    ['<path class="ln-under" d="M4 24C24 24 34 5 60 5"/><path class="ln-bio" d="M4 24C24 24 34 5 60 5"/><path class="leaf" d="'+LEAF+'" transform="translate(30 15) rotate(-110) scale(.8)"/>',"Birth parent → child","Solid organic root"],
+    ['<path class="ln-adopt" d="M4 24C24 24 34 5 60 5"/>',"Adoptive or step","Broken line (graft, dots or dashes)"],
+    ['<line class="ln-sp" x1="2" y1="14" x2="62" y2="14"/><g class="ring" transform="translate(32 14)"><circle cx="-5" r="7"/><circle cx="5" r="7"/><path class="tendril" d="M-14 0C-8-9-3 8 2 0S10-7 14 0M-14 0C-8 9-3-8 2 0S10 7 14 0"/><ellipse class="atom" rx="12" ry="4.6" transform="rotate(32)"/><ellipse class="atom" rx="12" ry="4.6" transform="rotate(-32)"/><circle class="atom-dot" r="2.8"/></g>',"Spouses / partners","Linked at a shared node"],
+    ['<path class="ln-div" d="M2 14H25M39 14H62"/>',"Former partners","Faded line with a break"]
+  ];
+  return '<div><h5>Line styles</h5><ul class="lg">'+items.map(function(x){return '<li><svg viewBox="0 0 64 28" aria-hidden="true">'+x[0]+'</svg><span><b>'+x[1]+'</b><small>'+x[2]+'</small></span></li>'}).join("")+'</ul></div>';
+}
+function swatches(t){
+  return '<div><h5>Palette</h5><ul class="sw">'+t.sw.map(function(s){return '<li><i style="background:'+s[1]+'"></i><b>'+s[0]+'</b><code>'+s[1]+'</code></li>'}).join("")+'</ul></div>'+
+    '<div><h5>Type</h5><div class="ty">'+t.ty.map(function(y){return '<div><span class="aa" style="font-family:'+y[0].replace(/"/g,"&quot;")+'">Aa</span><span><b style="font-family:'+y[0].replace(/"/g,"&quot;")+'">'+y[1]+'</b><small>'+y[2]+'</small></span></div>'}).join("")+'</div></div>';
+}
+
+/* ---------------- Render ---------------- */
+var tabsEl=document.getElementById("tabs"), panelsEl=document.getElementById("panels");
+tabsEl.innerHTML = THEMES.map(function(t,i){
+  return '<button class="tab" role="tab" id="tab-'+t.k+'" aria-controls="p-'+t.k+'" aria-selected="'+(i===0)+'" tabindex="'+(i===0?0:-1)+'"><span class="dots" aria-hidden="true">'+t.dots.map(function(c){return '<i style="background:'+c+'"></i>'}).join("")+'</span><span><b>'+(i+1)+'. '+t.tab+'</b><small>'+t.name.replace(" (wildcard)","")+'</small></span></button>';
+}).join("");
+panelsEl.innerHTML = THEMES.map(function(t,i){
+  return '<section class="dir" id="p-'+t.k+'" role="tabpanel" aria-labelledby="tab-'+t.k+'"'+(i?' hidden':'')+' data-k="'+t.k+'">'+
+    '<div class="intro"><div><p class="eyebrow">Direction '+(i+1)+' · '+t.tab+'</p><h2>'+t.name+'</h2><p class="mood">'+t.mood+'</p><p class="suits"><b>Suits:</b> '+t.suits+'</p></div><button class="replay" type="button">'+I.replay+'Replay bloom</button></div>'+
+    '<div class="world t-'+t.k+'"><div class="stage"><div class="cwrap"><div class="canvas" role="application" aria-label="Family tree canvas, '+t.tab+' style">'+canvasHTML(t)+'</div></div>'+
+    '<aside class="drawer" aria-label="Profile drawer"><div class="dr"></div></aside></div><div class="spec">'+legend()+swatches(t)+'</div></div></section>';
+}).join("");
+
+var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+var state = {};
+
+Array.prototype.forEach.call(document.querySelectorAll(".dir"), function(panel){
+  var k=panel.dataset.k, t=THEMES.filter(function(x){return x.k===k})[0];
+  var S = state[k] = {z:1, px:0, py:0, sel:"margaret", outer:1, raf:0, playing:false};
+  var wrap=panel.querySelector(".cwrap"), canvas=panel.querySelector(".canvas"), tree=panel.querySelector(".tree"), dr=panel.querySelector(".dr"), status=panel.querySelector(".status"), vp=panel.querySelector(".vp"), zv=panel.querySelector(".zm-v");
+  var stTimer;
+  function say(msg){status.textContent=msg;status.classList.add("show");clearTimeout(stTimer);stTimer=setTimeout(function(){status.classList.remove("show")},3200);}
+
+  function fit(){var w=wrap.clientWidth;if(!w)return;var s=Math.min(1,w/960);S.outer=s;wrap.style.height=Math.round(740*s)+"px";canvas.style.transform="translate("+Math.max(0,(w-960*s)/2)+"px,0) scale("+s+")";}
+  new ResizeObserver(fit).observe(wrap);
+
+  function applyView(){
+    tree.style.transform="translate("+S.px+"px,"+S.py+"px) scale("+S.z+")";
+    zv.textContent=Math.round(S.z*100)+"%";
+    var w=960/S.z, h=740/S.z, x=480+(-480-S.px)/S.z, y=370+(-370-S.py)/S.z;
+    vp.setAttribute("x",x.toFixed(1));vp.setAttribute("y",y.toFixed(1));vp.setAttribute("width",w.toFixed(1));vp.setAttribute("height",h.toFixed(1));
+  }
+  panel.querySelector(".zm").addEventListener("click",function(e){
+    var b=e.target.closest("button");if(!b)return;
+    if(b.dataset.z==="in")S.z=Math.min(1.6,+(S.z+.15).toFixed(2));
+    else if(b.dataset.z==="out")S.z=Math.max(.55,+(S.z-.15).toFixed(2));
+    else {S.z=1;S.px=0;S.py=0;}
+    applyView();
+  });
+  // Pan
+  var drag=null;
+  canvas.addEventListener("pointerdown",function(e){
+    if(e.button!==0||e.target.closest("button,input,label,.mm,.zm,.tb"))return;
+    drag={x:e.clientX,y:e.clientY,px:S.px,py:S.py};canvas.setPointerCapture(e.pointerId);canvas.classList.add("dragging");
+  });
+  canvas.addEventListener("pointermove",function(e){
+    if(!drag)return;S.px=drag.px+(e.clientX-drag.x)/S.outer;S.py=drag.py+(e.clientY-drag.y)/S.outer;applyView();
+  });
+  function endDrag(){if(drag){drag=null;canvas.classList.remove("dragging");}}
+  canvas.addEventListener("pointerup",endDrag);canvas.addEventListener("pointercancel",endDrag);
+
+  // Cards
+  function select(id){
+    stopAudio();
+    S.sel=id;
+    Array.prototype.forEach.call(panel.querySelectorAll(".card"),function(c){c.classList.toggle("sel",c.dataset.id===id)});
+    Array.prototype.forEach.call(panel.querySelectorAll(".mm rect[data-mm]"),function(r){r.setAttribute("class",r.dataset.mm===id?"me":"")});
+    dr.innerHTML=drawerHTML(id);
+    paintWave();
+  }
+  tree.addEventListener("click",function(e){
+    var h=e.target.closest(".hdl");
+    if(h){var who=P[h.closest(".card").dataset.id];say("Add "+h.dataset.add.toLowerCase()+" for "+who.f+": a short form opens, then the new card blooms here.");return;}
+    var c=e.target.closest(".card-main");
+    if(c)select(c.parentNode.dataset.id);
+  });
+  // Hover state demo: remove the pinned hover when the user hovers something else
+  tree.addEventListener("pointerover",function(e){var c=e.target.closest(".card");if(c&&c.dataset.id!=="samuel")panel.querySelector('.card[data-id="samuel"]').classList.remove("is-hover");});
+
+  // Drawer: audio + record + close
+  function paintWave(){
+    var a=dr.querySelector(".audio[data-dur]");if(!a)return;
+    var t=+a.dataset.t, dur=+a.dataset.dur, bars=a.querySelectorAll(".wave i"), on=Math.round(t/dur*bars.length);
+    for(var i=0;i<bars.length;i++)bars[i].classList.toggle("on",i<on);
+    a.querySelector(".time").textContent=fmt(t)+" / "+fmt(dur);
+  }
+  function stopAudio(){
+    S.playing=false;cancelAnimationFrame(S.raf);
+    var b=dr.querySelector(".play");if(b){b.innerHTML=I.play;b.setAttribute("aria-label",b.getAttribute("aria-label").replace(/^Pause/,"Play"));}
+  }
+  function playAudio(){
+    var a=dr.querySelector(".audio[data-dur]"), b=a.querySelector(".play"), last=performance.now();
+    S.playing=true;b.innerHTML=I.pause;b.setAttribute("aria-label",b.getAttribute("aria-label").replace(/^Play/,"Pause"));
+    (function tick(now){
+      if(!S.playing)return;
+      var t=+a.dataset.t+(now-last)/1000*4;last=now; // 4x so the progress is visible in a demo
+      if(t>=+a.dataset.dur){t=0;a.dataset.t=0;paintWave();stopAudio();return;}
+      a.dataset.t=t;paintWave();S.raf=requestAnimationFrame(tick);
+    })(last);
+  }
+  dr.addEventListener("click",function(e){
+    if(e.target.closest(".play")){S.playing?stopAudio():playAudio();return;}
+    var r=e.target.closest(".rec");
+    if(r){var on=r.getAttribute("aria-pressed")!=="true";r.setAttribute("aria-pressed",on);r.querySelector("span").textContent=on?"Recording… tap to stop":(r.dataset.l||"Record a memory");if(on&&!r.dataset.l)r.dataset.l="Record a memory";return;}
+    if(e.target.closest(".dr-x")){stopAudio();S.sel=null;Array.prototype.forEach.call(panel.querySelectorAll(".card.sel"),function(c){c.classList.remove("sel")});dr.innerHTML=drawerHTML(null);}
+  });
+
+  // Bloom
+  S.bloom=function(){
+    var g=panel.querySelector(".bloomg"), card=panel.querySelector('.card[data-id="theo"]');
+    var paths=g.querySelectorAll(".ln-bio,.ln-under"), extras=g.querySelectorAll(".leaf,.endpt");
+    if(reduce.matches){card.animate([{opacity:0},{opacity:1}],{duration:200,easing:"ease-out"});return;}
+    Array.prototype.forEach.call(paths,function(p){p.animate([{strokeDasharray:"1 1",strokeDashoffset:1},{strokeDasharray:"1 1",strokeDashoffset:0}],{duration:650,easing:"cubic-bezier(.22,1,.36,1)"});});
+    Array.prototype.forEach.call(extras,function(x){x.animate([{opacity:0},{opacity:0,offset:.55},{opacity:1}],{duration:950,easing:"ease-out"});});
+    card.animate([{opacity:0,transform:t.bloomFrom},{opacity:1,offset:.6,transform:"translateY(1px) scale(1.03)"},{opacity:1,transform:"none"}],{duration:600,delay:500,easing:"cubic-bezier(.22,1,.36,1)",fill:"backwards"});
+  };
+  panel.querySelector(".replay").addEventListener("click",S.bloom);
+
+  select("margaret");
+  applyView();
+});
+
+/* ---------------- Tabs ---------------- */
+var tabs=Array.prototype.slice.call(document.querySelectorAll(".tab"));
+function activate(i,focus){
+  tabs.forEach(function(tb,j){
+    var on=i===j;tb.setAttribute("aria-selected",on);tb.tabIndex=on?0:-1;
+    document.getElementById(tb.getAttribute("aria-controls")).hidden=!on;
+  });
+  if(focus)tabs[i].focus();
+  var k=THEMES[i].k;
+  requestAnimationFrame(function(){state[k].bloom();});
+}
+tabs.forEach(function(tb,i){
+  tb.addEventListener("click",function(){activate(i)});
+  tb.addEventListener("keydown",function(e){
+    var n=null;
+    if(e.key==="ArrowRight")n=(i+1)%tabs.length;else if(e.key==="ArrowLeft")n=(i-1+tabs.length)%tabs.length;else if(e.key==="Home")n=0;else if(e.key==="End")n=tabs.length-1;
+    if(n!==null){e.preventDefault();activate(n,true);}
+  });
+});
+
+/* ---------------- Page theme toggle ---------------- */
+var modes=["auto","light","dark"], mi=0, tbtn=document.getElementById("themeBtn");
+tbtn.addEventListener("click",function(){
+  mi=(mi+1)%3;var m=modes[mi];
+  if(m==="auto")document.documentElement.removeAttribute("data-theme");else document.documentElement.setAttribute("data-theme",m);
+  var label=m[0].toUpperCase()+m.slice(1);
+  tbtn.textContent="Page theme: "+label;tbtn.setAttribute("aria-label","Page theme: "+(m==="auto"?"automatic":m)+". Change theme");
+});
+})();
+</script>
+
+</body></html>

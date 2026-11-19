@@ -1,0 +1,89 @@
+@import '@fontsource/young-serif/400.css';
+@import '@fontsource/figtree/400.css';
+@import '@fontsource/figtree/500.css';
+@import '@fontsource/figtree/600.css';
+@import '@fontsource/figtree/700.css';
+@import '@fontsource/courier-prime/400.css';
+@import '@fontsource/courier-prime/700.css';
+@import '@fontsource/courier-prime/400-italic.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  @apply bg-sheet font-sans text-ink antialiased;
+  overflow: hidden;
+}
+:focus-visible {
+  outline: 2px solid #2f5638;
+  outline-offset: 2px;
+}
+
+@layer components {
+  .label-caps {
+    @apply font-label text-[11px] font-bold uppercase tracking-[0.12em] text-ink-muted;
+  }
+  .btn {
+    @apply inline-flex items-center gap-2 rounded-leaf-sm border border-rule bg-card px-3 py-2 text-sm font-semibold text-moss-deep transition-colors hover:bg-mist disabled:opacity-50;
+  }
+  .btn-solid {
+    @apply inline-flex items-center gap-2 rounded-leaf-sm bg-moss px-3 py-2 text-sm font-semibold text-card transition-colors hover:bg-moss-deep disabled:opacity-50;
+  }
+  .field {
+    @apply w-full rounded-leaf-sm border border-transparent bg-transparent px-2 py-1 transition-colors hover:border-rule focus:border-moss focus:bg-card focus:outline-none;
+  }
+  .select {
+    @apply rounded-leaf-sm border border-rule bg-card px-2 py-1 font-label text-[11px] text-ink-soft focus:border-moss focus:outline-none;
+  }
+}
+
+/* Specimen tape strip on cards */
+.tape {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  width: 52px;
+  height: 17px;
+  margin-left: -26px;
+  transform: rotate(-4deg);
+  background: rgba(214, 204, 160, 0.82);
+  clip-path: polygon(2% 0, 98% 4%, 100% 100%, 0 96%);
+  pointer-events: none;
+}
+
+.canvas-bg {
+  background: radial-gradient(ellipse 70% 60% at 50% 42%, #eef1e7, #e1e7d8 78%);
+}
+
+/* While a pick-whip is being dragged, hide every handle so only cards are drop targets. */
+[data-whipping] [data-whip],
+[data-whipping] [data-couple],
+[data-whipping] [data-edge] {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Pick-whip vine: dashes flow toward the pointer. */
+.whip-vine {
+  animation: whip-flow 0.6s linear infinite;
+}
+@keyframes whip-flow {
+  to {
+    stroke-dashoffset: -16;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
