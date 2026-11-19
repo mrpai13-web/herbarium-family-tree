@@ -90,6 +90,8 @@ interface State {
   setGroupEditing(on: boolean): void;
 
   load(): Promise<void>;
+  /** Re-read everything from IndexedDB (after a shared tree pulled other people's edits). */
+  reload(): Promise<void>;
   /** Shows the confirm dialog; resolves true if the user confirms. */
   ask(q: Ask): Promise<boolean>;
   /** Adds someone not yet connected to anyone, selected and ready to name. */
@@ -334,6 +336,28 @@ export const useStore = create<State>((set, get) => {
     });
     })();
     return loading;
+  },
+
+  async reload() {
+    const [people, links, unions, groups] = await Promise.all([
+      db.people.toArray(), db.parentLinks.toArray(), db.unions.toArray(), db.groups.toArray(),
+    ]);
+    const mediaMeta: Record<Id, MediaMeta> = {};
+    await db.media.each((m) => {
+      mediaMeta[m.id] = strip(m);
+    });
+    const peopleById = Object.fromEntries(people.map((p) => [p.id, p]));
+    set((s) => ({
+      graph: {
+        people: peopleById,
+        parentLinks: Object.fromEntries(links.map((l) => [l.id, l])),
+        unions: Object.fromEntries(unions.map((u) => [u.id, u])),
+        groups: Object.fromEntries(groups.map((x) => [x.id, x])),
+      },
+      media: mediaMeta,
+      ready: true,
+      selectedId: s.selectedId && peopleById[s.selectedId] ? s.selectedId : null,
+    }));
   },
 
   select(id) {
@@ -666,4 +690,30 @@ async function writeAll(graph: FamilyGraph, media: MediaRecord[]) {
     await db.unions.bulkPut(Object.values(graph.unions));
     await db.media.bulkPut(media);
   });
+}
+
+/** Actions that change the archive. */
+const EDITS = [
+  'undo', 'redo', 'createGroup', 'updateGroup', 'deleteGroup', 'toggleGroupMember', 'setCoreGroup',
+  'addPerson', 'connectPeople', 'sprout', 'sproutCoupleChild', 'connectCoupleChild', 'updatePerson',
+  'updateParentLink', 'removeParentLink', 'updateUnion', 'removeUnion', 'breakConnection', 'deletePerson',
+  'addImages', 'addAudio', 'updateMedia', 'removeMedia',
+] as const;
+/** Actions that swap out the whole archive: never allowed in a shared tree. */
+const REPLACES = ['replaceAll', 'startBlank', 'restoreSample'] as const;
+
+/**
+ * For a shared tree: edits only go through when `canEdit()` says so (signed in and
+ * invited); otherwise `onBlocked` explains why. Replacing the whole tree is always blocked
+ * there, so a click on "sample family" can't wipe everyone's shared tree.
+ */
+export function guardEdits(canEdit: () => boolean, onBlocked: (what: 'edit' | 'replace') => void) {
+  const st = useStore.getState() as unknown as Record<string, (...a: unknown[]) => unknown>;
+  const patch: Record<string, unknown> = {};
+  for (const k of EDITS) {
+    const orig = st[k];
+    patch[k] = (...a: unknown[]) => (canEdit() ? orig(...a) : (onBlocked('edit'), Promise.resolve(undefined)));
+  }
+  for (const k of REPLACES) patch[k] = () => (onBlocked('replace'), Promise.resolve(undefined));
+  useStore.setState(patch as Partial<State>);
 }

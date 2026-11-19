@@ -81,6 +81,40 @@ sample family* on the empty tree, or **Archive → Restore the sample family**.
   replacing the current tree after a confirmation. Browsers can clear site data, so
   export now and then.
 
+## Sharing (`src/sync/`, `supabase/schema.sql`)
+
+Without Supabase keys the app is exactly as before: one private tree in this browser.
+With them, the **Share** button can put a tree online:
+
+1. **Share** -> sign in by email link -> **Put this tree online**. This uploads a copy
+   (people, links, groups, photos, voice memories) and gives a link `…/?tree=<id>`.
+   The private tree in this browser stays as it was.
+2. Anyone with the link can **view**. To **edit**, the owner invites an email under
+   *Who can edit*; that person signs in with that email from the Share button.
+3. Edits save automatically: a cloud icon on the Share button shows *All changes saved*,
+   *Saving…* or *Offline* (changes wait in an outbox and send when back online).
+   Other people's edits arrive within seconds (broadcast), or at worst every 20 s.
+
+How it works: each shared tree has its own IndexedDB cache (`herbarium-shared-<id>`). A Dexie
+middleware (`src/data/db.ts`) reports every local write; `src/sync/engine.ts` pushes the
+current version of each touched row (last write wins; deletes are soft) and pulls rows
+by sequence number through the `pull_tree` function. Photos and audio go to the public
+`family-media` bucket under `<tree>/<media>/blob|thumb` and are shown from there.
+In a view-only tree the store's edit actions are guarded, handles are hidden and the
+profile's fields are read-only; replacing a shared tree (import, sample, start over)
+is never allowed.
+
+### Setting it up
+
+1. Create a free project at supabase.com. In **SQL Editor**, run `supabase/schema.sql`.
+2. **Authentication > URL Configuration**: set *Site URL* to the hosted address and add
+   it (and `http://localhost:5190`) to *Redirect URLs*.
+3. Copy `.env.example` to `.env.local` with the project URL and anon/publishable key.
+4. `pnpm build`, then host `dist/` anywhere static (e.g. `npx netlify-cli deploy --prod --dir dist`).
+
+Supabase's built-in email sender allows only a few sign-in emails per hour; for a whole
+family, add an SMTP provider under **Authentication > Emails > SMTP** (e.g. Resend's free tier).
+
 ## Line styles
 
 | Relationship | On the sheet |
@@ -160,8 +194,11 @@ Dev builds expose `window.__store` and `window.__archive` for automated checks.
 
 ## Known limits
 
-- Data lives in one browser profile. Another browser, or clearing site data, starts
-  empty: use Export / Import to move or keep it.
+- The private tree lives in one browser profile. Another browser, or clearing site data,
+  starts empty: use Export / Import, or share the tree to keep it online.
+- Shared trees: two people editing the *same field* at the same moment, the later save
+  wins. Undo is per person and can undo someone else's later edit to the same row.
+  Anyone holding the link can view; treat it like a private photo-album link.
 - Recording needs a secure origin (`localhost` is fine) and microphone permission.
 - Very large trees (hundreds of people) re-render every card during the 0.5 s glide
   after an edit; fine at family scale, not yet virtualised.

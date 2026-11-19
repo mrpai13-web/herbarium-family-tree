@@ -10,6 +10,8 @@ import { EmptyTree } from './ui/EmptyTree';
 import { confirmDeleteMedia, confirmDeletePerson } from './data/deletes';
 import { TopBar } from './ui/TopBar';
 import { personMatches } from './core/dates';
+import { sharedTreeId } from './sync/config';
+import { loadSession, startSync, useSync } from './sync/engine';
 
 export function App() {
   const ready = useStore((s) => s.ready);
@@ -22,7 +24,13 @@ export function App() {
   const canvas = useRef<TreeCanvasHandle>(null);
 
   useEffect(() => {
-    load().catch((e: Error) => setError(e.message));
+    load()
+      .then(() => {
+        // Network trouble isn't fatal: the cached copy stays usable and the status says why.
+        const connect = sharedTreeId ? startSync(() => useStore.getState().reload()) : loadSession();
+        connect.catch((e: Error) => useSync.setState({ status: navigator.onLine ? 'error' : 'offline', problem: e.message, firstLoad: false }));
+      })
+      .catch((e: Error) => setError(e.message));
     void requestPersistence();
   }, [load]);
 
@@ -68,6 +76,9 @@ export function App() {
   }, []);
 
   const empty = useStore((s) => Object.keys(s.graph.people).length === 0);
+  const canEdit = useSync((s) => s.canEdit);
+  const firstLoad = useSync((s) => s.firstLoad);
+  const missing = useSync((s) => s.status === 'missing');
 
   // Opening someone from the drawer's family list should bring them into view.
   useEffect(() => {
@@ -94,9 +105,14 @@ export function App() {
     );
 
   return (
-    <div className="relative h-full overflow-hidden">
+    <div className="relative h-full overflow-hidden" data-readonly={canEdit ? undefined : ''}>
       <TreeCanvas ref={canvas} query={query} drawerOpen={!!person} />
-      {empty && <EmptyTree />}
+      {empty && firstLoad && (
+        <div className="pointer-events-none absolute inset-0 grid place-items-center">
+          <p className="label-caps animate-pulse">Opening the shared tree…</p>
+        </div>
+      )}
+      {empty && !firstLoad && (missing ? <SharedNotice text="This shared tree doesn’t exist any more, or the link is incomplete. Check the link you were sent." /> : canEdit ? <EmptyTree /> : <SharedNotice text="This shared tree is empty so far." />)}
       <TopBar
         drawerOpen={!!person}
         query={query}
@@ -111,6 +127,14 @@ export function App() {
       <AnimatePresence>{person && <ProfileDrawer key="drawer" person={person} onClose={() => select(null)} />}</AnimatePresence>
       <ConfirmDialog />
       <Toasts />
+    </div>
+  );
+}
+
+function SharedNotice({ text }: { text: string }) {
+  return (
+    <div className="pointer-events-none absolute inset-0 grid place-items-center p-6">
+      <p className="max-w-sm rounded-leaf-md border border-rule bg-card/95 p-5 text-center text-[14px] leading-relaxed shadow-specimen">{text}</p>
     </div>
   );
 }

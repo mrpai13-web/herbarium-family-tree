@@ -87,3 +87,9 @@ body {
     animation-duration: 0.01ms !important;
   }
 }
+
+/* Shared tree, view only: no pick whips or couple handles. */
+[data-readonly] [data-whip],
+[data-readonly] [data-couple] {
+  display: none !important;
+}

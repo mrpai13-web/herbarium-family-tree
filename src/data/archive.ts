@@ -8,6 +8,7 @@
 import { strFromU8, strToU8, unzip, zip, type Zippable } from 'fflate';
 import type { FamilyGraph, MediaMeta, MediaRecord } from '../core/types';
 import { db } from './db';
+import { mediaBlob } from './media';
 
 export const FORMAT = 'herbarium-family-archive';
 export const VERSION = 1;
@@ -40,7 +41,12 @@ export async function exportArchive(graph: FamilyGraph, kind: 'zip' | 'json'): P
   const entries: ArchiveMediaEntry[] = [];
   const files: Zippable = {};
   for (const r of records) {
-    const { blob, thumb, ...meta } = r;
+    const { blob: own, thumb: ownThumb, ...meta } = r;
+    // Shared trees keep files on the server until needed.
+    const blob = own ?? (await mediaBlob(r, 'blob'))!;
+    const thumb = ownThumb ?? (await mediaBlob(r, 'thumb'));
+    delete (meta as { remote?: boolean }).remote;
+    delete (meta as { hasThumb?: boolean }).hasThumb;
     const e: ArchiveMediaEntry = { ...meta, file: `media/${r.id}.${ext(blob.type || r.mime)}` };
     if (thumb && thumb !== blob) e.thumbFile = `media/${r.id}.thumb.${ext(thumb.type)}`;
     if (kind === 'zip') {

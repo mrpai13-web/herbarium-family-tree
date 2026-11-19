@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Camera, Trash2, X } from 'lucide-react';
-import { useRef } from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
+import { useSync } from '../sync/engine';
 import { fullName } from '../core/dates';
 import type { Person, Sex } from '../core/types';
 import { ACCEPT_IMAGE } from '../data/media';
@@ -81,6 +82,9 @@ export function ProfileDrawer({ person, onClose }: { person: Person; onClose(): 
   const photos = person.galleryIds.map((id) => media[id]).filter(Boolean);
   const memories = person.audioIds.map((id) => media[id]).filter(Boolean);
   const isFreshName = focusNameOf === person.id;
+  const canEdit = useSync((s) => s.canEdit);
+  const body = useRef<HTMLDivElement>(null);
+  useReadOnlyFields(body, !canEdit);
 
   return (
     <motion.aside
@@ -94,13 +98,13 @@ export function ProfileDrawer({ person, onClose }: { person: Person; onClose(): 
       data-no-pan
     >
       <div className="flex items-center justify-between px-5 pb-1 pt-4">
-        <span className="label-caps">Specimen · {person.placeholder ? 'unknown' : 'profile'}</span>
+        <span className="label-caps">Specimen · {person.placeholder ? 'unknown' : 'profile'}{canEdit ? '' : ' · view only'}</span>
         <button type="button" onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full text-moss-deep hover:bg-sheet" aria-label="Close profile">
           <X size={17} />
         </button>
       </div>
 
-      <div key={person.id} className="flex flex-1 flex-col gap-7 overflow-y-auto px-5 pb-10 pt-2">
+      <div ref={body} key={person.id} className="flex flex-1 flex-col gap-7 overflow-y-auto px-5 pb-10 pt-2">
         {/* Identity */}
         <div className="flex gap-4">
           <DropZone onFiles={(f) => addImages(person.id, f, true)} accept={(f) => f.type.startsWith('image/')} className="shrink-0 rounded-[40px_40px_12px_12px]">
@@ -261,4 +265,23 @@ export function ProfileDrawer({ person, onClose }: { person: Person; onClose(): 
       </div>
     </motion.aside>
   );
+}
+
+/**
+ * View-only shared tree: text fields become read-only and pickers disabled, so nobody
+ * types into a field that can't be saved. Photos and voice memories still open and play.
+ */
+function useReadOnlyFields(ref: RefObject<HTMLDivElement>, readOnly: boolean) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !readOnly) return;
+    const apply = () => {
+      el.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input:not([type=file]), textarea').forEach((f) => (f.readOnly = true));
+      el.querySelectorAll<HTMLSelectElement | HTMLInputElement>('select, input[type=file]').forEach((f) => (f.disabled = true));
+    };
+    apply();
+    const mo = new MutationObserver(apply);
+    mo.observe(el, { childList: true, subtree: true });
+    return () => mo.disconnect();
+  }, [ref, readOnly]);
 }

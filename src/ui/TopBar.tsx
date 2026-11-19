@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { Archive, ChevronDown, Download, FileJson, FolderOpen, Menu, Redo2, RotateCcw, Search, Sprout, Undo2, UserPlus } from 'lucide-react';
+import { Archive, ChevronDown, Cloud, CloudOff, Share2, Download, FileJson, FolderOpen, Menu, Redo2, RotateCcw, Search, Sprout, Undo2, UserPlus } from 'lucide-react';
 import { coreGroup, familyTitle } from '../core/groups';
 import { GroupsPanel } from './GroupsPanel';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -7,6 +7,9 @@ import { computeLayout } from '../core/layout';
 import { exportArchive, importArchive, saveFile, type ImportedArchive } from '../data/archive';
 import { useStore } from '../data/store';
 import { Hint } from './Hint';
+import { SharePanel, syncWords } from './SharePanel';
+import { sharedTreeId } from '../sync/config';
+import { useSync } from '../sync/engine';
 
 export function TopBar({ query, onQuery, drawerOpen = false }: { query: string; onQuery(q: string): void; drawerOpen?: boolean }) {
   const graph = useStore((s) => s.graph);
@@ -21,6 +24,10 @@ export function TopBar({ query, onQuery, drawerOpen = false }: { query: string; 
   const undo = useStore((s) => s.undo);
   const redo = useStore((s) => s.redo);
   const [menu, setMenu] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const canEdit = useSync((s) => s.canEdit);
+  const sync = useSync((s) => s.status);
+  const pendingSync = useSync((s) => s.pending);
   const [groupsOpen, setGroupsOpen] = useState(false);
   const core = coreGroup(graph);
   const [pending, setPending] = useState<{ kind: 'import'; data: ImportedArchive; name: string } | { kind: 'blank' | 'sample' } | null>(null);
@@ -135,7 +142,7 @@ export function TopBar({ query, onQuery, drawerOpen = false }: { query: string; 
         </div>
 
         <div ref={menuRef} className={`pointer-events-auto relative ml-auto flex items-start gap-2 transition-[margin] duration-300 ${drawerOpen ? 'sm:mr-[440px]' : ''}`}>
-          {(undoLabel || redoLabel) && (
+          {canEdit && (undoLabel || redoLabel) && (
             <div className="flex overflow-hidden rounded-leaf-md border border-rule bg-card shadow-specimen">
               <Hint text={undoLabel ? `Undo “${undoLabel}” (Ctrl+Z)` : 'Nothing to undo'}>
                 <button
@@ -163,7 +170,23 @@ export function TopBar({ query, onQuery, drawerOpen = false }: { query: string; 
               </Hint>
             </div>
           )}
-          {people + Object.values(graph.people).filter((p) => p.placeholder).length > 0 && (
+          <div className="relative">
+            <Hint text={sharedTreeId ? `Shared tree: ${syncWords(sync, pendingSync)}. Click for the link and who can edit.` : 'Put this tree online and send family a link.'}>
+              <button
+                type="button"
+                data-share-toggle
+                className="btn !rounded-leaf-md !py-2.5 shadow-specimen"
+                onClick={() => setShareOpen((o) => !o)}
+                aria-expanded={shareOpen}
+                aria-haspopup="dialog"
+              >
+                {!sharedTreeId ? <Share2 size={16} /> : sync === 'offline' || sync === 'error' ? <CloudOff size={16} className="text-[#9A3B2F]" /> : <Cloud size={16} className={sync === 'syncing' || sync === 'connecting' ? 'animate-pulse' : ''} />}
+                <span className="hidden sm:inline">{sharedTreeId ? (canEdit ? 'Shared' : 'View only') : 'Share'}</span>
+              </button>
+            </Hint>
+            <AnimatePresence>{shareOpen && <SharePanel onClose={() => setShareOpen(false)} />}</AnimatePresence>
+          </div>
+          {canEdit && people + Object.values(graph.people).filter((p) => p.placeholder).length > 0 && (
             <Hint text="Adds someone who isn't connected yet. Connect them by dragging the vine handle on their card onto someone else's card.">
               <button type="button" className="btn-solid !rounded-leaf-md !py-2.5 shadow-specimen" onClick={() => void addPerson()}>
                 <UserPlus size={16} />
@@ -208,7 +231,7 @@ export function TopBar({ query, onQuery, drawerOpen = false }: { query: string; 
                     <small className="block text-[11px] text-ink-muted">Same content, larger file</small>
                   </span>
                 </button>
-                <button
+                {!sharedTreeId && <button
                   role="menuitem"
                   type="button"
                   className={item}
@@ -222,7 +245,8 @@ export function TopBar({ query, onQuery, drawerOpen = false }: { query: string; 
                     Import archive…
                     <small className="block text-[11px] text-ink-muted">Restore a .zip or .json backup</small>
                   </span>
-                </button>
+                </button>}
+                {!sharedTreeId && <>
                 <div className="my-1.5 h-px bg-rule" />
                 <p className="label-caps px-3 pb-1 pt-1 !text-[10px]">Start over</p>
                 <button role="menuitem" type="button" className={item} onClick={() => (setMenu(false), setPending({ kind: 'blank' }))}>
@@ -231,8 +255,11 @@ export function TopBar({ query, onQuery, drawerOpen = false }: { query: string; 
                 <button role="menuitem" type="button" className={item} onClick={() => (setMenu(false), setPending({ kind: 'sample' }))}>
                   <RotateCcw size={15} className="text-moss" /> Restore the sample family
                 </button>
+                </>}
                 <p className="px-3 pb-2 pt-2 text-[11px] leading-snug text-ink-muted">
-                  Your tree is stored only in this browser on this computer. Export a backup now and then.
+                  {sharedTreeId
+                    ? 'This shared tree is saved online. Export a copy now and then to keep your own backup.'
+                    : 'Your tree is stored only in this browser on this computer. Export a backup now and then, or share it to keep it online.'}
                 </p>
               </motion.div>
             )}
