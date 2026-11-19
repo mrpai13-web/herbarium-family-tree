@@ -1,9 +1,9 @@
 /**
  * Auto-layout for the family graph. Pure and deterministic; see README "Layout".
  *
- *  1. Generations: parent -> child pushes the child down a row, partners share
- *     a row, and parents with no parents of their own are pulled down to sit
- *     right above their children (so in-laws don't float at the top).
+ *  1. Generations: a walk over the family puts each child exactly one row below
+ *     their parents and partners on one row, so siblings, their partners and
+ *     in-law families line up; a relaxation then repairs conflicting data.
  *  2. Clusters: partners in a row form one unbreakable cluster
  *     (former partners on the left, current on the right of the shared person).
  *  3. Ordering: Sugiyama-style barycentre sweeps, so each cluster sits near its
@@ -62,8 +62,42 @@ export function computeLayout(g: FamilyGraph): Layout {
   }
   for (const [, kids] of childrenOf) kids.sort((a, b) => cmpBirth(g, a, b));
 
-  /* ---- 1. generations (monotone relaxation; capped so bad data can't hang) */
-  const gen: Record<Id, number> = Object.fromEntries(ids.map((id) => [id, 0]));
+  /* ---- 1. generations
+   * First a breadth-first walk over the family: a child is exactly one row below a parent,
+   * partners share a row. So siblings and their partners line up, and families joined by
+   * marriage align with each other however many ancestors each has recorded. Then a
+   * relaxation repairs anything the walk couldn't satisfy (e.g. a marriage across
+   * generations): children always end up below parents, partners on one row. */
+  const gen: Record<Id, number> = {};
+  const compOf: Record<Id, number> = {};
+  {
+    const adj = new Map<Id, [Id, number][]>(ids.map((id) => [id, []]));
+    for (const u of unions) {
+      adj.get(u.partners[0])!.push([u.partners[1], 0]);
+      adj.get(u.partners[1])!.push([u.partners[0], 0]);
+    }
+    for (const l of links) {
+      adj.get(l.parentId)!.push([l.childId, 1]);
+      adj.get(l.childId)!.push([l.parentId, -1]);
+    }
+    let comp = 0;
+    for (const start of ids) {
+      if (start in gen) continue;
+      gen[start] = 0;
+      compOf[start] = comp;
+      const queue = [start];
+      for (let qi = 0; qi < queue.length; qi++) {
+        const c = queue[qi];
+        for (const [o, d] of adj.get(c)!) {
+          if (o in gen) continue;
+          gen[o] = gen[c] + d;
+          compOf[o] = comp;
+          queue.push(o);
+        }
+      }
+      comp++;
+    }
+  }
   const cap = ids.length * 4 + 10;
   for (let it = 0, changed = true; changed && it < cap; it++) {
     changed = false;
@@ -83,8 +117,10 @@ export function computeLayout(g: FamilyGraph): Layout {
       if (target > gen[id]) (gen[id] = target), (changed = true);
     }
   }
-  const minGen = Math.min(...ids.map((id) => gen[id]));
-  for (const id of ids) gen[id] -= minGen;
+  // Each separate family starts at the top row.
+  const compMin = new Map<number, number>();
+  for (const id of ids) compMin.set(compOf[id], Math.min(compMin.get(compOf[id]) ?? Infinity, gen[id]));
+  for (const id of ids) gen[id] -= compMin.get(compOf[id])!;
   const rowsCount = Math.max(...ids.map((id) => gen[id])) + 1;
 
   /* ---- 2. clusters of partners within a row */

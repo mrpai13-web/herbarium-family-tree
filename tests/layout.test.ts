@@ -110,3 +110,71 @@ describe('unconnected people', () => {
     expect(computeLayout({ people: {}, parentLinks: {}, unions: {} }).pos).toEqual({});
   });
 });
+
+describe('generations line up across families', () => {
+  // A small family built by name: parents(child, ...parents), married(a, b).
+  function family() {
+    const g: FamilyGraph = { people: {}, parentLinks: {}, unions: {}, groups: {} };
+    const id = (n: string) => n;
+    const person = (n: string) => (g.people[n] ??= { ...blankPersonFor(n), id: id(n) });
+    let k = 0;
+    return {
+      g,
+      parents(child: string, ...ps: string[]) {
+        person(child);
+        for (const p of ps) {
+          person(p);
+          const lid = `l${k++}`;
+          g.parentLinks[lid] = { id: lid, parentId: p, childId: child, kind: 'biological' };
+        }
+      },
+      married(a: string, b: string) {
+        person(a);
+        person(b);
+        const uid = `u${k++}`;
+        g.unions[uid] = { id: uid, partners: [a, b], kind: 'married', status: 'current' };
+      },
+    };
+  }
+  const blankPersonFor = (n: string) => ({
+    id: n, givenName: n, surname: '', galleryIds: [], audioIds: [], createdAt: 0,
+  }) as unknown as FamilyGraph['people'][string];
+
+  it('a spouse with more recorded ancestors does not push their partner below their siblings', () => {
+    const f = family();
+    // Frank and his brother; the brother's kids. Gloria has parents and grandparents recorded.
+    f.parents('Frank', 'Dad', 'Mum');
+    f.parents('Brother', 'Dad', 'Mum');
+    f.married('Dad', 'Mum');
+    f.parents('Nephew', 'Brother');
+    f.parents('Niece', 'Brother');
+    f.parents('Gloria', 'GPa', 'GMa');
+    f.parents('GPa', 'GGPa');
+    f.married('Frank', 'Gloria');
+    const L = computeLayout(f.g);
+    expect(L.gen.Frank).toBe(L.gen.Brother);
+    expect(L.gen.Gloria).toBe(L.gen.Frank);
+    expect(L.gen.Nephew).toBe(L.gen.Frank + 1);
+    expect(L.gen.Dad).toBe(L.gen.Frank - 1);
+    expect(L.gen.GPa).toBe(L.gen.Gloria - 1);
+    for (const id of Object.keys(L.pos)) expect(L.pos[id].y).toBe(L.gen[id] * ROW_H);
+  });
+
+  it('brothers and their wives share a row, and the patriarch sits alone on top', () => {
+    const f = family();
+    f.parents('Po-Chen', 'Ben Shao Chi');
+    f.parents('Wu-Chen', 'Ben Shao Chi');
+    f.married('Po-Chen', 'Kuanyin');
+    f.married('Wu-Chen', 'Lien-Fang');
+    // Lien-Fang's parents are known; Kuanyin's aren't.
+    f.parents('Lien-Fang', 'LF-Father', 'LF-Mother');
+    f.parents('Grandchild', 'Po-Chen', 'Kuanyin');
+    const L = computeLayout(f.g);
+    const row = ['Po-Chen', 'Kuanyin', 'Wu-Chen', 'Lien-Fang'].map((n) => L.gen[n]);
+    expect(new Set(row).size).toBe(1);
+    expect(L.gen['Ben Shao Chi']).toBe(row[0] - 1);
+    // Lien-Fang's parents are Ben's generation, not above him.
+    expect(L.gen['LF-Father']).toBe(L.gen['Ben Shao Chi']);
+    expect(L.gen.Grandchild).toBe(row[0] + 1);
+  });
+});
