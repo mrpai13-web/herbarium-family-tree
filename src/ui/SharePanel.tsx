@@ -179,7 +179,9 @@ function ShareLocal() {
         <a className="btn-solid justify-center" href={link}>
           <ExternalLink size={15} /> Open the shared tree
         </a>
-        <p className="text-[11.5px] text-ink-muted">Make changes in the shared tree from now on. This browser keeps its private copy too, unchanged.</p>
+        <p className="text-[11.5px] text-ink-muted">
+          Make changes in the shared tree from now on. It opens on the public site, so sign in there once more with the same token. This browser keeps its private copy too, unchanged.
+        </p>
         <SignedInAs login={login} />
       </div>
     );

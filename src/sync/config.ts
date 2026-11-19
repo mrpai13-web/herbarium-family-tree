@@ -17,9 +17,13 @@ function readRepo(): string | null {
 /** "owner/name" of the shared tree's data repository, or null for the private local tree. */
 export const sharedRepo: string | null = readRepo();
 
+/** Where the app is published (GitHub Pages). Links made on a local copy point here. */
+export const PUBLIC_APP_URL = 'https://mrpai13-web.github.io/herbarium-family-tree/';
+
 /** The link that opens a shared tree. */
 export function treeLink(repo: string): string {
-  const u = new URL(location.href);
+  const local = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  const u = new URL(local ? PUBLIC_APP_URL : location.href);
   u.search = `?repo=${repo}`;
   u.hash = '';
   return u.toString();
