@@ -10,7 +10,7 @@ import { EmptyTree } from './ui/EmptyTree';
 import { confirmDeleteMedia, confirmDeletePerson } from './data/deletes';
 import { TopBar } from './ui/TopBar';
 import { personMatches } from './core/dates';
-import { sharedTreeId } from './sync/config';
+import { sharedRepo } from './sync/config';
 import { loadSession, startSync, useSync } from './sync/engine';
 
 export function App() {
@@ -27,7 +27,7 @@ export function App() {
     load()
       .then(() => {
         // Network trouble isn't fatal: the cached copy stays usable and the status says why.
-        const connect = sharedTreeId ? startSync(() => useStore.getState().reload()) : loadSession();
+        const connect = sharedRepo ? startSync(() => useStore.getState().reload()) : loadSession();
         connect.catch((e: Error) => useSync.setState({ status: navigator.onLine ? 'error' : 'offline', problem: e.message, firstLoad: false }));
       })
       .catch((e: Error) => setError(e.message));
@@ -79,6 +79,7 @@ export function App() {
   const canEdit = useSync((s) => s.canEdit);
   const firstLoad = useSync((s) => s.firstLoad);
   const missing = useSync((s) => s.status === 'missing');
+  const signin = useSync((s) => s.status === 'signin');
 
   // Opening someone from the drawer's family list should bring them into view.
   useEffect(() => {
@@ -112,7 +113,16 @@ export function App() {
           <p className="label-caps animate-pulse">Opening the shared tree…</p>
         </div>
       )}
-      {empty && !firstLoad && (missing ? <SharedNotice text="This shared tree doesn’t exist any more, or the link is incomplete. Check the link you were sent." /> : canEdit ? <EmptyTree /> : <SharedNotice text="This shared tree is empty so far." />)}
+      {empty && !firstLoad &&
+        (signin ? (
+          <SharedNotice text="This family tree is private. Use the Sign in button at the top right to sign in with your GitHub account." />
+        ) : missing ? (
+          <SharedNotice text="Your GitHub account can’t open this tree yet. Ask whoever sent the link to add your GitHub username, then accept the invitation GitHub emails you." />
+        ) : canEdit ? (
+          <EmptyTree />
+        ) : (
+          <SharedNotice text="This shared tree is empty so far." />
+        ))}
       <TopBar
         drawerOpen={!!person}
         query={query}

@@ -1,10 +1,10 @@
 /**
  * IndexedDB via Dexie. The private tree stays in this browser profile on this computer.
- * A shared tree (`?tree=<id>`) gets its own database, used as a local cache of Supabase.
+ * A shared tree (`?repo=owner/name`) gets its own database, used as a local cache of its GitHub repository.
  */
 import Dexie, { type DBCoreMutateRequest, type Table } from 'dexie';
 import type { Group, MediaRecord, ParentLink, Person, Union } from '../core/types';
-import { sharedTreeId } from '../sync/config';
+import { sharedRepo } from '../sync/config';
 
 export interface MetaRow {
   key: string;
@@ -37,7 +37,7 @@ export class ArchiveDB extends Dexie {
   }
 }
 
-export const db = new ArchiveDB(sharedTreeId ? `herbarium-shared-${sharedTreeId}` : undefined);
+export const db = new ArchiveDB(sharedRepo ? `herbarium-shared-${sharedRepo.replace('/', '__')}` : undefined);
 
 /* ------------------------------------------------------------ change feed */
 

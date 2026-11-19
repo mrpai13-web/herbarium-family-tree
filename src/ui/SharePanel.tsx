@@ -1,16 +1,18 @@
 import { motion } from 'framer-motion';
-import { Check, Cloud, CloudOff, Copy, ExternalLink, Loader2, LogOut, Mail, Trash2, UserPlus, X } from 'lucide-react';
+import { Check, Cloud, CloudOff, Copy, ExternalLink, Github, KeyRound, Loader2, LogOut, Trash2, UserPlus, X } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { familyTitle } from '../core/groups';
 import { useStore } from '../data/store';
-import { sharedTreeId, syncConfigured, treeLink } from '../sync/config';
-import { addMember, listMembers, removeMember, sendSignInLink, shareLocalTree, signOut, useSync, type Member } from '../sync/engine';
+import { NEW_TOKEN_URL, sharedRepo, treeLink } from '../sync/config';
+import { addMember, listMembers, removeMember, shareLocalTree, sharedTreeName, signIn, signOut, useSync, type Member } from '../sync/engine';
 
-/** Status words for the sync pill and panel. */
+/** Status words for the share button and panel. */
 export function syncWords(status: ReturnType<typeof useSync.getState>['status'], pending: number): string {
   switch (status) {
     case 'connecting':
       return 'Connecting…';
+    case 'signin':
+      return 'Sign in to open';
     case 'syncing':
       return pending ? `Saving ${pending} change${pending === 1 ? '' : 's'}…` : 'Saving…';
     case 'synced':
@@ -18,9 +20,9 @@ export function syncWords(status: ReturnType<typeof useSync.getState>['status'],
     case 'offline':
       return pending ? `Offline · ${pending} change${pending === 1 ? '' : 's'} will send later` : 'Offline';
     case 'missing':
-      return 'Tree not found';
+      return 'No access yet';
     case 'error':
-      return 'Can’t reach the server';
+      return 'Can’t reach GitHub';
     default:
       return 'Only in this browser';
   }
@@ -51,76 +53,82 @@ export function SharePanel({ onClose }: { onClose(): void }) {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -4 }}
       transition={{ duration: 0.15 }}
-      className="absolute right-0 top-[calc(100%+8px)] z-30 w-[min(92vw,360px)] origin-top-right rounded-leaf-md border border-rule bg-card p-4 shadow-lift"
+      className="absolute right-0 top-[calc(100%+8px)] z-30 max-h-[calc(100vh-90px)] w-[min(92vw,370px)] origin-top-right overflow-y-auto rounded-leaf-md border border-rule bg-card p-4 shadow-lift"
     >
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="font-display text-[17px]">{sharedTreeId ? 'Shared tree' : 'Share this tree'}</h2>
+        <h2 className="font-display text-[17px]">{sharedRepo ? 'Shared tree' : 'Share this tree'}</h2>
         <button type="button" className="grid h-8 w-8 place-items-center rounded-full text-moss-deep hover:bg-mist" onClick={onClose} aria-label="Close">
           <X size={16} />
         </button>
       </div>
-      {!syncConfigured ? <NotSetUp /> : sharedTreeId ? <SharedPanel /> : <ShareLocal />}
+      {sharedRepo ? <SharedPanel /> : <ShareLocal />}
     </motion.div>
   );
 }
 
-function NotSetUp() {
-  return (
-    <p className="text-[13px] leading-relaxed text-ink-soft">
-      Sharing isn’t switched on for this copy of the app. It needs a Supabase project: see “Sharing” in the README. Until then your tree stays in this browser.
-    </p>
-  );
-}
+const errText = 'text-[12px] text-[#9A3B2F]';
 
 /* ------------------------------------------------------------ sign in */
 
 function SignIn({ why }: { why: string }) {
-  const [email, setEmail] = useState('');
-  const [state, setState] = useState<'idle' | 'sending' | 'sent'>('idle');
+  const [token, setTokenText] = useState('');
+  const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   async function submit(e: FormEvent) {
     e.preventDefault();
     setErr(null);
-    setState('sending');
+    setBusy(true);
     try {
-      await sendSignInLink(email);
-      setState('sent');
+      await signIn(token);
     } catch (x) {
       setErr((x as Error).message);
-      setState('idle');
+    } finally {
+      setBusy(false);
     }
   }
-  if (state === 'sent')
-    return (
-      <div className="rounded-leaf-sm bg-mist p-3 text-[13px] leading-relaxed">
-        <Mail size={16} className="mb-1 text-moss" />
-        Check <b>{email}</b> for a sign-in link and open it on this device. It brings you back here, signed in.
-        <button type="button" className="mt-2 block text-[12px] text-moss underline" onClick={() => setState('idle')}>
-          Use a different email
-        </button>
-      </div>
-    );
   return (
-    <form onSubmit={submit} className="flex flex-col gap-2">
-      <p className="text-[13px] leading-relaxed text-ink-soft">{why}</p>
+    <form onSubmit={submit} className="flex flex-col gap-2.5 text-[13px] leading-relaxed">
+      <p className="text-ink-soft">{why}</p>
+      <ol className="flex list-decimal flex-col gap-1.5 pl-5 text-[12.5px] text-ink-soft marker:text-moss">
+        <li>
+          No GitHub account? <a className="text-moss underline" href="https://github.com/signup" target="_blank" rel="noreferrer">Make a free one</a>.
+        </li>
+        <li>
+          <a className="text-moss underline" href={NEW_TOKEN_URL} target="_blank" rel="noreferrer">Open this page</a>, pick an expiry (<i>No expiration</i> is fine), scroll down and press <b>Generate token</b>.
+        </li>
+        <li>Copy the token (it starts with <code className="font-label text-[11.5px]">ghp_</code>) and paste it here.</li>
+      </ol>
       <label className="flex flex-col gap-1">
-        <span className="label-caps !text-[10px]">Your email</span>
-        <input type="email" required className="field" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" autoComplete="email" />
+        <span className="label-caps !text-[10px]">GitHub token</span>
+        <input
+          type="password"
+          required
+          className="field font-label !text-[12px]"
+          value={token}
+          onChange={(e) => setTokenText(e.target.value)}
+          placeholder="ghp_…"
+          autoComplete="off"
+          spellCheck={false}
+        />
       </label>
-      {err && <p role="alert" className="text-[12px] text-[#9A3B2F]">{err}</p>}
-      <button type="submit" className="btn-solid justify-center" disabled={state === 'sending'}>
-        {state === 'sending' ? <Loader2 size={15} className="animate-spin" /> : <Mail size={15} />} Email me a sign-in link
+      {err && <p role="alert" className={errText}>{err}</p>}
+      <button type="submit" className="btn-solid justify-center" disabled={busy}>
+        {busy ? <Loader2 size={15} className="animate-spin" /> : <KeyRound size={15} />} Sign in
       </button>
-      <p className="text-[11px] text-ink-muted">No password: you click the link in the email each time you sign in on a new device.</p>
+      <p className="text-[11px] leading-snug text-ink-muted">
+        The token stays in this browser and is only sent to GitHub. You do this once per device. Sign out to remove it.
+      </p>
     </form>
   );
 }
 
-function SignedInAs({ email }: { email: string }) {
+function SignedInAs({ login }: { login: string }) {
   return (
-    <div className="mt-3 flex items-center justify-between gap-2 border-t border-rule pt-3 text-[12px] text-ink-muted">
-      <span className="truncate">Signed in as {email}</span>
-      <button type="button" className="flex shrink-0 items-center gap-1 text-moss hover:underline" onClick={() => void signOut()}>
+    <div className="mt-1 flex items-center justify-between gap-2 border-t border-rule pt-3 text-[12px] text-ink-muted">
+      <span className="flex min-w-0 items-center gap-1.5 truncate">
+        <Github size={13} /> {login}
+      </span>
+      <button type="button" className="flex shrink-0 items-center gap-1 text-moss hover:underline" onClick={signOut}>
         <LogOut size={13} /> Sign out
       </button>
     </div>
@@ -151,7 +159,7 @@ function CopyLink({ link }: { link: string }) {
 /* ------------------------------------------------------------ private tree -> shared */
 
 function ShareLocal() {
-  const email = useSync((s) => s.email);
+  const login = useSync((s) => s.login);
   const graph = useStore((s) => s.graph);
   const [name, setName] = useState(() => familyTitle(graph));
   const [progress, setProgress] = useState<[number, number] | null>(null);
@@ -159,22 +167,20 @@ function ShareLocal() {
   const [err, setErr] = useState<string | null>(null);
   const empty = Object.keys(graph.people).length === 0;
 
-  if (!email) return <SignIn why="Put this tree online so family can see it from a link, and the people you invite can add to it. First, sign in." />;
+  if (!login) return <SignIn why="Sharing keeps the tree in a private GitHub repository of yours. Family you add there can open it from a link and add to it. First, sign in to GitHub:" />;
 
   if (link)
     return (
       <div className="flex flex-col gap-3 text-[13px] leading-relaxed">
         <p>
-          <b>{name}</b> is online. Send this link to family: anyone with it can look; people you invite can edit.
+          <b>{name}</b> is saved to a private repository on your GitHub. Open it, then add family under <i>Who can edit</i>.
         </p>
         <CopyLink link={link} />
         <a className="btn-solid justify-center" href={link}>
           <ExternalLink size={15} /> Open the shared tree
         </a>
-        <p className="text-[11.5px] text-ink-muted">
-          Make your changes in the shared tree from now on. Invite editors from its Share button. This browser keeps its private copy too, unchanged.
-        </p>
-        <SignedInAs email={email} />
+        <p className="text-[11.5px] text-ink-muted">Make changes in the shared tree from now on. This browser keeps its private copy too, unchanged.</p>
+        <SignedInAs login={login} />
       </div>
     );
 
@@ -195,13 +201,13 @@ function ShareLocal() {
       }}
     >
       <p className="text-[13px] leading-relaxed text-ink-soft">
-        Uploads a copy of this tree, with its photos and voice memories, and gives you a link. Anyone with the link can view it; only people you invite can edit.
+        Copies this tree, with its photos and voice memories, into a new <b>private</b> repository on your GitHub, and gives you a link. Only people you add can open it.
       </p>
       <label className="flex flex-col gap-1">
         <span className="label-caps !text-[10px]">Name</span>
         <input className="field" value={name} onChange={(e) => setName(e.target.value)} required />
       </label>
-      {err && <p role="alert" className="text-[12px] text-[#9A3B2F]">{err}</p>}
+      {err && <p role="alert" className={errText}>{err}</p>}
       <button type="submit" className="btn-solid justify-center" disabled={Boolean(progress) || empty}>
         {progress ? (
           <>
@@ -209,12 +215,12 @@ function ShareLocal() {
           </>
         ) : (
           <>
-            <Cloud size={15} /> Put this tree online
+            <Cloud size={15} /> Put this tree on GitHub
           </>
         )}
       </button>
       {empty && <p className="text-[11.5px] text-ink-muted">Add someone first.</p>}
-      <SignedInAs email={email} />
+      <SignedInAs login={login} />
     </form>
   );
 }
@@ -222,32 +228,33 @@ function ShareLocal() {
 /* ------------------------------------------------------------ in a shared tree */
 
 function SharedPanel() {
-  const { email, canEdit, isOwner, status, pending, problem, treeName } = useSync();
-  const link = treeLink(sharedTreeId!);
+  const { login, canEdit, isOwner, status, pending, problem } = useSync();
+  const link = treeLink(sharedRepo!);
+  const name = sharedTreeName();
   return (
     <div className="flex flex-col gap-3 text-[13px]">
       <div className="flex items-center gap-2 rounded-leaf-sm bg-mist px-3 py-2">
         {status === 'offline' || status === 'error' ? <CloudOff size={15} className="text-ink-muted" /> : <Cloud size={15} className="text-moss" />}
         <span className="min-w-0 flex-1">
-          <b className="block truncate">{treeName || 'Shared tree'}</b>
+          <b className="block truncate">{name || sharedRepo}</b>
           <span className="text-[12px] text-ink-muted">{syncWords(status, pending)}</span>
         </span>
       </div>
-      {problem && status !== 'synced' && <p className="text-[12px] text-[#9A3B2F]">{problem}</p>}
+      {problem && status !== 'synced' && <p className={errText}>{problem}</p>}
       <div className="flex flex-col gap-1">
         <span className="label-caps !text-[10px]">Link to send to family</span>
         <CopyLink link={link} />
-        <span className="text-[11.5px] text-ink-muted">Anyone with this link can view the tree.</span>
+        <span className="text-[11.5px] text-ink-muted">Only people added below can open it.</span>
       </div>
-      {!email && <SignIn why="To add people, photos or stories, sign in with the email the tree’s owner invited." />}
-      {email && !canEdit && (
-        <p className="rounded-leaf-sm border border-rule p-3 leading-relaxed">
-          You can view this tree. To edit, ask whoever shared it to invite <b>{email}</b>.
-        </p>
-      )}
-      {email && canEdit && !isOwner && <p className="text-[12px] text-ink-muted">You’re invited to edit. Your changes save automatically.</p>}
+      {!login && <SignIn why="This tree is kept in a private GitHub repository. Sign in with the GitHub account the tree’s owner added:" />}
+      {login && canEdit && !isOwner && <p className="text-[12px] text-ink-muted">You can edit this tree. Changes save automatically.</p>}
       {isOwner && <Members />}
-      {email && <SignedInAs email={email} />}
+      {login && (
+        <a className="flex items-center gap-1.5 text-[12px] text-moss hover:underline" href={`https://github.com/${sharedRepo}/commits`} target="_blank" rel="noreferrer">
+          <Github size={13} /> History of every change on GitHub
+        </a>
+      )}
+      {login && <SignedInAs login={login} />}
       <a href={location.pathname} className="text-[12px] text-moss hover:underline">
         Open my private tree in this browser
       </a>
@@ -257,45 +264,52 @@ function SharedPanel() {
 
 function Members() {
   const [members, setMembers] = useState<Member[] | null>(null);
-  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const refresh = () => listMembers().then(setMembers, (e: Error) => setErr(e.message));
   useEffect(() => void refresh(), []);
   return (
     <div className="flex flex-col gap-2 border-t border-rule pt-3">
-      <span className="label-caps !text-[10px]">Who can edit</span>
+      <span className="label-caps !text-[10px]">Who can open and edit</span>
       <form
         className="flex gap-1.5"
         onSubmit={async (e) => {
           e.preventDefault();
           setErr(null);
+          setBusy(true);
           try {
-            await addMember(email);
-            setEmail('');
+            await addMember(name);
+            setName('');
             await refresh();
           } catch (x) {
             setErr((x as Error).message);
+          } finally {
+            setBusy(false);
           }
         }}
       >
-        <input type="email" required className="field min-w-0 flex-1" placeholder="Relative’s email" value={email} onChange={(e) => setEmail(e.target.value)} aria-label="Email to invite" />
-        <button type="submit" className="btn shrink-0">
-          <UserPlus size={15} /> Invite
+        <input required className="field min-w-0 flex-1" placeholder="Their GitHub username" value={name} onChange={(e) => setName(e.target.value)} aria-label="GitHub username to add" />
+        <button type="submit" className="btn shrink-0" disabled={busy}>
+          {busy ? <Loader2 size={15} className="animate-spin" /> : <UserPlus size={15} />} Add
         </button>
       </form>
-      {err && <p role="alert" className="text-[12px] text-[#9A3B2F]">{err}</p>}
+      {err && <p role="alert" className={errText}>{err}</p>}
       <ul className="flex flex-col gap-1">
         <li className="text-[12px] text-ink-muted">You (owner)</li>
         {members?.map((m) => (
-          <li key={m.email} className="flex items-center justify-between gap-2 text-[12.5px]">
-            <span className="truncate">{m.email}</span>
+          <li key={m.login} className="flex items-center justify-between gap-2 text-[12.5px]">
+            <span className="truncate">
+              {m.login}
+              {m.pending && <span className="ml-1.5 text-[11px] text-ink-muted">invited, not accepted yet</span>}
+            </span>
             <button
               type="button"
               className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-ink-muted hover:bg-mist hover:text-[#9A3B2F]"
-              aria-label={`Remove ${m.email}`}
+              aria-label={`Remove ${m.login}`}
               onClick={async () => {
                 try {
-                  await removeMember(m.email);
+                  await removeMember(m);
                   await refresh();
                 } catch (x) {
                   setErr((x as Error).message);
@@ -307,7 +321,9 @@ function Members() {
           </li>
         ))}
       </ul>
-      <p className="text-[11.5px] leading-snug text-ink-muted">Send them the link above. They sign in with the email you invited, then they can add people, photos and memories.</p>
+      <p className="text-[11.5px] leading-snug text-ink-muted">
+        GitHub emails them an invitation to accept. Then they open the link above and sign in with their own GitHub token.
+      </p>
     </div>
   );
 }

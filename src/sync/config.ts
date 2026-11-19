@@ -1,41 +1,65 @@
 /**
  * Which tree this page is showing.
  *
- * - No `?tree=` in the address: the private tree in this browser (as before).
- * - `?tree=<id>`: a shared tree from Supabase, cached in its own IndexedDB database so it
- *   never mixes with the private one.
- *
- * Sharing needs VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY at build time (see .env.example).
+ * - No `?repo=` in the address: the private tree in this browser (as before).
+ * - `?repo=owner/name`: a shared tree kept in a private GitHub repository, cached in its
+ *   own IndexedDB database so it never mixes with the private one. Reading and writing it
+ *   needs a GitHub token from someone the owner added to that repository.
  */
-const env = import.meta.env as Record<string, string | undefined>;
+const REPO = /^[A-Za-z0-9-]{1,39}\/[A-Za-z0-9._-]{1,100}$/;
 
-export const SUPABASE_URL = env.VITE_SUPABASE_URL?.trim() || '';
-export const SUPABASE_KEY = env.VITE_SUPABASE_ANON_KEY?.trim() || '';
-export const syncConfigured = Boolean(SUPABASE_URL && SUPABASE_KEY);
-
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function readTreeId(): string | null {
+function readRepo(): string | null {
   if (typeof location === 'undefined') return null;
-  const id = new URLSearchParams(location.search).get('tree');
-  return id && UUID.test(id) ? id.toLowerCase() : null;
+  const r = new URLSearchParams(location.search).get('repo');
+  return r && REPO.test(r) ? r : null;
 }
 
-/** The shared tree's id, or null for the private local tree. */
-export const sharedTreeId: string | null = syncConfigured ? readTreeId() : null;
+/** "owner/name" of the shared tree's data repository, or null for the private local tree. */
+export const sharedRepo: string | null = readRepo();
 
 /** The link that opens a shared tree. */
-export function treeLink(id: string): string {
+export function treeLink(repo: string): string {
   const u = new URL(location.href);
-  u.search = `?tree=${id}`;
+  u.search = `?repo=${repo}`;
   u.hash = '';
   return u.toString();
 }
 
-/** Bucket path prefix for a media file. */
-export const mediaPath = (tree: string, mediaId: string, which: 'blob' | 'thumb') => `${tree}/${mediaId}/${which}`;
+/* ------------------------------------------------------------ GitHub token */
 
-/** Public URL of a shared tree's media file (the bucket is public; paths are random ids). */
-export function remoteMediaUrl(tree: string, mediaId: string, which: 'blob' | 'thumb'): string {
-  return `${SUPABASE_URL}/storage/v1/object/public/family-media/${mediaPath(tree, mediaId, which)}`;
+const TOKEN_KEY = 'herbarium-github-token';
+
+/** The GitHub token saved in this browser (only ever sent to api.github.com). */
+export function getToken(): string | null {
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setToken(t: string | null) {
+  try {
+    if (t) localStorage.setItem(TOKEN_KEY, t);
+    else localStorage.removeItem(TOKEN_KEY);
+  } catch {
+    /* storage blocked: the token works for this visit only */
+  }
+}
+
+/** Creating a classic token with the one scope the app needs, pre-filled. */
+export const NEW_TOKEN_URL = 'https://github.com/settings/tokens/new?scopes=repo&description=Herbarium%20family%20tree';
+
+/* ------------------------------------------------------------ remote media */
+
+type Fetcher = (mediaId: string, which: 'blob' | 'thumb') => Promise<Blob | undefined>;
+let fetcher: Fetcher | null = null;
+
+/** The sync engine registers how to download a shared tree's photo or recording. */
+export function setRemoteMediaFetcher(f: Fetcher) {
+  fetcher = f;
+}
+
+export function fetchRemoteMedia(mediaId: string, which: 'blob' | 'thumb'): Promise<Blob | undefined> {
+  return fetcher ? fetcher(mediaId, which) : Promise.resolve(undefined);
 }

@@ -81,39 +81,37 @@ sample family* on the empty tree, or **Archive → Restore the sample family**.
   replacing the current tree after a confirmation. Browsers can clear site data, so
   export now and then.
 
-## Sharing (`src/sync/`, `supabase/schema.sql`)
+## Sharing (`src/sync/`)
 
-Without Supabase keys the app is exactly as before: one private tree in this browser.
-With them, the **Share** button can put a tree online:
+The app itself is public (GitHub Pages, built by `.github/workflows/pages.yml`); it holds
+no family data. Without sharing it is exactly as before: one private tree in this browser.
 
-1. **Share** -> sign in by email link -> **Put this tree online**. This uploads a copy
-   (people, links, groups, photos, voice memories) and gives a link `…/?tree=<id>`.
-   The private tree in this browser stays as it was.
-2. Anyone with the link can **view**. To **edit**, the owner invites an email under
-   *Who can edit*; that person signs in with that email from the Share button.
-3. Edits save automatically: a cloud icon on the Share button shows *All changes saved*,
-   *Saving…* or *Offline* (changes wait in an outbox and send when back online).
-   Other people's edits arrive within seconds (broadcast), or at worst every 20 s.
+Sharing keeps a tree in a **private GitHub repository** owned by whoever shares it:
 
-How it works: each shared tree has its own IndexedDB cache (`herbarium-shared-<id>`). A Dexie
-middleware (`src/data/db.ts`) reports every local write; `src/sync/engine.ts` pushes the
-current version of each touched row (last write wins; deletes are soft) and pulls rows
-by sequence number through the `pull_tree` function. Photos and audio go to the public
-`family-media` bucket under `<tree>/<media>/blob|thumb` and are shown from there.
-In a view-only tree the store's edit actions are guarded, handles are hidden and the
-profile's fields are read-only; replacing a shared tree (import, sample, start over)
-is never allowed.
+1. **Share** -> sign in with a GitHub token (the panel links to a pre-filled token page
+   with the `repo` scope; the token is kept in this browser's localStorage and only sent
+   to api.github.com) -> **Put this tree on GitHub**. This creates a private repo
+   `<name>-tree`, commits the tree and its photos and voice memories, and gives a link
+   `…/?repo=owner/name`. The private tree in this browser stays as it was.
+2. The owner adds relatives by GitHub username under *Who can open and edit*. GitHub
+   emails them an invitation; once accepted they open the link and sign in with their
+   own token. Everyone added can view and edit (GitHub has no read-only collaborators on
+   personal repos).
+3. Edits save automatically, one commit per save, so the repo's history records every
+   change. The Share button shows *All changes saved*, *Saving…* or *Offline* (changes wait
+   in an outbox and go up when back online). Other people's edits arrive within ~20 s.
 
-### Setting it up
-
-1. Create a free project at supabase.com. In **SQL Editor**, run `supabase/schema.sql`.
-2. **Authentication > URL Configuration**: set *Site URL* to the hosted address and add
-   it (and `http://localhost:5190`) to *Redirect URLs*.
-3. Copy `.env.example` to `.env.local` with the project URL and anon/publishable key.
-4. `pnpm build`, then host `dist/` anywhere static (e.g. `npx netlify-cli deploy --prod --dir dist`).
-
-Supabase's built-in email sender allows only a few sign-in emails per hour; for a whole
-family, add an SMTP provider under **Authentication > Emails > SMTP** (e.g. Resend's free tier).
+Repository layout: `tree.json` (`format: "herbarium-shared-tree"`, all rows by table),
+`media/<id>` and `media/<id>.thumb` (raw files). How it syncs: each shared tree has its own
+IndexedDB cache (`herbarium-shared-<owner>__<repo>`). A Dexie middleware (`src/data/db.ts`)
+reports every local write; `src/sync/engine.ts` pushes by re-reading `tree.json` at the
+branch head, overlaying the changed rows and committing through the Git Data API with a
+non-forced ref update, so a concurrent save makes it retry on top of the other person's
+commit (different people's edits never overwrite each other; the same row: last save
+wins). Pulls poll the branch ref with an ETag (304s are free). Photos download on first
+view and are then cached. In a tree you can't edit, edit actions are guarded, handles are
+hidden and profile fields are read-only; replacing a shared tree (import, sample, start
+over) is never allowed.
 
 ## Line styles
 
@@ -196,9 +194,11 @@ Dev builds expose `window.__store` and `window.__archive` for automated checks.
 
 - The private tree lives in one browser profile. Another browser, or clearing site data,
   starts empty: use Export / Import, or share the tree to keep it online.
-- Shared trees: two people editing the *same field* at the same moment, the later save
+- Shared trees: two people editing the *same person* at the same moment, the later save
   wins. Undo is per person and can undo someone else's later edit to the same row.
-  Anyone holding the link can view; treat it like a private photo-album link.
+  Each relative needs a GitHub account and a token; a token with the `repo` scope can
+  reach all of that person's repositories, so it should stay on their own devices.
+  GitHub repos work best under ~1 GB, roughly 3,000 photos at the app's compression.
 - Recording needs a secure origin (`localhost` is fine) and microphone permission.
 - Very large trees (hundreds of people) re-render every card during the 0.5 s glide
   after an edit; fine at family scale, not yet virtualised.

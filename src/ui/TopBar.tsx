@@ -8,7 +8,7 @@ import { exportArchive, importArchive, saveFile, type ImportedArchive } from '..
 import { useStore } from '../data/store';
 import { Hint } from './Hint';
 import { SharePanel, syncWords } from './SharePanel';
-import { sharedTreeId } from '../sync/config';
+import { sharedRepo } from '../sync/config';
 import { useSync } from '../sync/engine';
 
 export function TopBar({ query, onQuery, drawerOpen = false }: { query: string; onQuery(q: string): void; drawerOpen?: boolean }) {
@@ -171,7 +171,7 @@ export function TopBar({ query, onQuery, drawerOpen = false }: { query: string; 
             </div>
           )}
           <div className="relative">
-            <Hint text={sharedTreeId ? `Shared tree: ${syncWords(sync, pendingSync)}. Click for the link and who can edit.` : 'Put this tree online and send family a link.'}>
+            <Hint text={sharedRepo ? `Shared tree: ${syncWords(sync, pendingSync)}. Click for the link and who can edit.` : 'Put this tree online and send family a link.'}>
               <button
                 type="button"
                 data-share-toggle
@@ -180,8 +180,8 @@ export function TopBar({ query, onQuery, drawerOpen = false }: { query: string; 
                 aria-expanded={shareOpen}
                 aria-haspopup="dialog"
               >
-                {!sharedTreeId ? <Share2 size={16} /> : sync === 'offline' || sync === 'error' ? <CloudOff size={16} className="text-[#9A3B2F]" /> : <Cloud size={16} className={sync === 'syncing' || sync === 'connecting' ? 'animate-pulse' : ''} />}
-                <span className="hidden sm:inline">{sharedTreeId ? (canEdit ? 'Shared' : 'View only') : 'Share'}</span>
+                {!sharedRepo ? <Share2 size={16} /> : sync === 'offline' || sync === 'error' ? <CloudOff size={16} className="text-[#9A3B2F]" /> : <Cloud size={16} className={sync === 'syncing' || sync === 'connecting' ? 'animate-pulse' : ''} />}
+                <span className="hidden sm:inline">{sharedRepo ? (canEdit ? 'Shared' : sync === 'signin' ? 'Sign in' : 'View only') : 'Share'}</span>
               </button>
             </Hint>
             <AnimatePresence>{shareOpen && <SharePanel onClose={() => setShareOpen(false)} />}</AnimatePresence>
@@ -231,7 +231,7 @@ export function TopBar({ query, onQuery, drawerOpen = false }: { query: string; 
                     <small className="block text-[11px] text-ink-muted">Same content, larger file</small>
                   </span>
                 </button>
-                {!sharedTreeId && <button
+                {!sharedRepo && <button
                   role="menuitem"
                   type="button"
                   className={item}
@@ -246,7 +246,7 @@ export function TopBar({ query, onQuery, drawerOpen = false }: { query: string; 
                     <small className="block text-[11px] text-ink-muted">Restore a .zip or .json backup</small>
                   </span>
                 </button>}
-                {!sharedTreeId && <>
+                {!sharedRepo && <>
                 <div className="my-1.5 h-px bg-rule" />
                 <p className="label-caps px-3 pb-1 pt-1 !text-[10px]">Start over</p>
                 <button role="menuitem" type="button" className={item} onClick={() => (setMenu(false), setPending({ kind: 'blank' }))}>
@@ -257,7 +257,7 @@ export function TopBar({ query, onQuery, drawerOpen = false }: { query: string; 
                 </button>
                 </>}
                 <p className="px-3 pb-2 pt-2 text-[11px] leading-snug text-ink-muted">
-                  {sharedTreeId
+                  {sharedRepo
                     ? 'This shared tree is saved online. Export a copy now and then to keep your own backup.'
                     : 'Your tree is stored only in this browser on this computer. Export a backup now and then, or share it to keep it online.'}
                 </p>

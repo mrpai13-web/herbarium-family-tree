@@ -4,11 +4,11 @@ import { App } from './App';
 import { ErrorBoundary } from './ui/ErrorBoundary';
 import './index.css';
 import { guardEdits, useStore } from './data/store';
-import { sharedTreeId } from './sync/config';
+import { sharedRepo } from './sync/config';
 import { canEditNow } from './sync/engine';
 
 // A shared tree: only invited, signed-in people may change it.
-if (sharedTreeId) {
+if (sharedRepo) {
   let last = 0;
   guardEdits(canEditNow, (what) => {
     if (Date.now() - last < 1500) return;
@@ -16,7 +16,7 @@ if (sharedTreeId) {
     useStore.getState().toast(
       what === 'replace'
         ? 'A shared tree can’t be replaced or reset here. Open your private tree for that.'
-        : 'This tree is view only for you. Use the Share button to sign in with an invited email.',
+        : 'You can’t edit this tree yet. Use the Share button to sign in with GitHub.',
       'error',
     );
   });

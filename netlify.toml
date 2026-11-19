@@ -1,9 +1,0 @@
-# Static site: `pnpm build` writes dist/. Deployed with `npx netlify-cli deploy --prod --dir dist`
-# after building locally with the Supabase keys in .env.local.
-[build]
-  publish = "dist"
-
-[[headers]]
-  for = "/assets/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"

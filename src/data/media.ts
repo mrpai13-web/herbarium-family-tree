@@ -1,7 +1,7 @@
 /** Client-side media processing: image compression, audio analysis, blob URL cache. */
 import { computePeaks, encodeWav } from '../core/waveform';
 import { db } from './db';
-import { remoteMediaUrl, sharedTreeId } from '../sync/config';
+import { fetchRemoteMedia, sharedRepo } from '../sync/config';
 import type { MediaRecord } from '../core/types';
 
 export const IMAGE_MAX = 1600;
@@ -96,9 +96,11 @@ export async function mediaUrl(id: string, which: 'blob' | 'thumb' = 'blob'): Pr
   if (hit) return hit;
   const rec = await db.media.get(id);
   if (!rec) return undefined;
-  // A shared tree's file that lives only on the server: show it straight from storage.
-  if (!rec.blob) return sharedTreeId ? remoteMediaUrl(sharedTreeId, id, which === 'thumb' && hasThumb(rec) ? 'thumb' : 'blob') : undefined;
-  const b = which === 'thumb' ? rec.thumb ?? rec.blob : rec.blob;
+  let b: Blob | undefined = which === 'thumb' ? rec.thumb ?? rec.blob : rec.blob;
+  // A shared tree's file not downloaded yet: fetch it once, then it's cached locally.
+  if (!b && sharedRepo) b = await fetchRemoteMedia(id, which).catch(() => undefined);
+  if (!b) return undefined;
+  if (urls.has(key)) return urls.get(key);
   const url = URL.createObjectURL(b);
   urls.set(key, url);
   return url;
@@ -110,10 +112,10 @@ const hasThumb = (r: MediaRecord) => Boolean((r as MediaRecord & { hasThumb?: bo
 export async function mediaBlob(rec: MediaRecord, which: 'blob' | 'thumb'): Promise<Blob | undefined> {
   const local = which === 'thumb' ? rec.thumb : rec.blob;
   if (local) return local;
-  if (rec.blob || !sharedTreeId || (which === 'thumb' && !hasThumb(rec))) return undefined;
-  const res = await fetch(remoteMediaUrl(sharedTreeId, rec.id, which));
-  if (!res.ok) throw new Error(`Couldn’t download “${rec.title ?? rec.caption ?? 'a file'}” (${res.status}).`);
-  return res.blob();
+  if (rec.blob || !sharedRepo || (which === 'thumb' && !hasThumb(rec))) return undefined;
+  const b = await fetchRemoteMedia(rec.id, which);
+  if (!b) throw new Error(`Couldn’t download “${rec.title ?? rec.caption ?? 'a file'}”.`);
+  return b;
 }
 
 export function forgetMediaUrl(id: string) {
