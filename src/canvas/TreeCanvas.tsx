@@ -7,7 +7,7 @@ import { buildEdges, type UnionEdge } from '../core/paths';
 import { describeUnion } from '../core/describe';
 import { groupBox } from '../core/groups';
 import type { ConnectAs } from '../core/relations';
-import { useStore } from '../data/store';
+import { layoutFocus, useStore } from '../data/store';
 import { Edges } from './Edges';
 import { EdgeLayer, type EdgeRef } from './EdgeLayer';
 import { Backdrop, Minimap, ZoomControls } from './Overlays';
@@ -47,7 +47,13 @@ export const TreeCanvas = forwardRef<TreeCanvasHandle, { query: string; drawerOp
   const showGroup = useStore((s) => s.showGroup);
 
   const box = useRef<HTMLDivElement>(null);
-  const layout = useMemo(() => computeLayout(graph), [graph]);
+  // Laid out around the last shown family group. While its members are being picked,
+  // the focus stays as it was, so the tree doesn't rearrange under each click.
+  const focusNow = useStore((s) => layoutFocus(s)?.join(','));
+  const focusKept = useRef(focusNow);
+  if (!groupEditing) focusKept.current = focusNow;
+  const focusKey = focusKept.current;
+  const layout = useMemo(() => computeLayout(graph, { focus: focusKey?.split(',') }), [graph, focusKey]);
   const boundsRef = useRef(layout.bounds);
   boundsRef.current = layout.bounds;
   const { view, setView, zoomBy, fit, centerOn } = useViewport(box, boundsRef);

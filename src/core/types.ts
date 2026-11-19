@@ -31,6 +31,12 @@ export interface Person {
   birthDate?: FuzzyDate;
   deathDate?: FuzzyDate;
   birthplace?: string;
+  /** Phone number(s), as typed. */
+  phone?: string;
+  /** Email address(es), as typed. */
+  email?: string;
+  /** Older single "Contact" line; split into phone and email when read (see upgradePerson). */
+  contact?: string;
   bio?: string;
   /** Media id of the portrait (an image Media record). */
   photoId?: Id;

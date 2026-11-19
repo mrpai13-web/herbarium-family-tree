@@ -6,8 +6,11 @@
  *     in-law families line up; a relaxation then repairs conflicting data.
  *  2. Clusters: partners in a row form one unbreakable cluster
  *     (former partners on the left, current on the right of the shared person).
- *  3. Ordering: Sugiyama-style barycentre sweeps, so each cluster sits near its
- *     parents and children; siblings keep birth order on ties.
+ *  3. Ordering: built outward from a focus couple (the selected family group's):
+ *     one partner's relatives to the left, the other's to the right, and recursively
+ *     every couple's two families on their own partner's side, so a parent's father
+ *     and mother stay above that parent. Then adjacent swaps that strictly reduce
+ *     line crossings clean up what the structure didn't decide.
  *  4. Coordinates: each row is solved as "be as close as possible to where my
  *     family wants me, never closer than the minimum gap", using isotonic
  *     regression (pool-adjacent-violators). The spacing constraint is what
@@ -40,6 +43,7 @@ export interface Layout {
 
 interface Cluster {
   members: Id[];
+  row: number;
   width: number;
   /** x offset of each member's card left edge from the cluster's left edge. */
   offsets: number[];
@@ -47,7 +51,16 @@ interface Cluster {
   order: number;
 }
 
-export function computeLayout(g: FamilyGraph): Layout {
+export interface LayoutOptions {
+  /**
+   * The family to build the tree around (a family group's members). Its central couple
+   * sits in the middle with one partner's relatives to the left and the other's to the right.
+   * Without it, the couple with the most direct ancestors and descendants is used.
+   */
+  focus?: Id[];
+}
+
+export function computeLayout(g: FamilyGraph, opts: LayoutOptions = {}): Layout {
   const ids = Object.keys(g.people).sort((a, b) => cmpBirth(g, a, b));
   if (ids.length === 0) return { pos: {}, gen: {}, bounds: { minX: 0, minY: 0, maxX: 0, maxY: 0 } };
 
@@ -149,47 +162,14 @@ export function computeLayout(g: FamilyGraph): Layout {
     }
     const members = arrangePartners(comp, unionsBy, g);
     const offsets = members.map((_, i) => i * (CARD_W + PARTNER_GAP));
-    const cl: Cluster = { members, offsets, width: offsets[offsets.length - 1] + CARD_W, x: 0, order: 0 };
+    const cl: Cluster = { members, row: gen[id], offsets, width: offsets[offsets.length - 1] + CARD_W, x: 0, order: 0 };
     for (const m of members) clusterOf.set(m, cl);
     rows[gen[id]].push(cl);
   }
 
-  /* ---- 3. ordering: DFS seed, then barycentre sweeps */
-  const dfsIndex = new Map<Id, number>();
-  let counter = 0;
-  const visit = (id: Id) => {
-    if (dfsIndex.has(id)) return;
-    dfsIndex.set(id, counter++);
-    for (const m of clusterOf.get(id)!.members) if (!dfsIndex.has(m)) dfsIndex.set(m, counter++);
-    for (const m of clusterOf.get(id)!.members) for (const k of childrenOf.get(m)!) visit(k);
-  };
-  const roots = ids.filter((id) => gen[id] === 0);
-  for (const r of roots) visit(r);
-  for (const id of ids) visit(id);
-  for (const row of rows) {
-    for (const cl of row) cl.order = Math.min(...cl.members.map((m) => dfsIndex.get(m)!));
-    row.sort((a, b) => a.order - b.order);
-    row.forEach((cl, i) => (cl.order = i));
-  }
-  const memberIndex = (id: Id) => {
-    const cl = clusterOf.get(id)!;
-    return cl.order + cl.members.indexOf(id) / (cl.members.length + 1);
-  };
-  const sweep = (r: number, neighbours: (id: Id) => Id[]) => {
-    const row = rows[r];
-    const keyed = row.map((cl, i) => {
-      const ns = cl.members.flatMap(neighbours);
-      const key = ns.length ? ns.reduce((s, n) => s + memberIndex(n), 0) / ns.length : i;
-      return { cl, key, birth: cl.members[0] };
-    });
-    keyed.sort((a, b) => a.key - b.key || cmpBirth(g, a.birth, b.birth));
-    keyed.forEach((k, i) => ((k.cl.order = i), (row[i] = k.cl)));
-  };
-  for (let pass = 0; pass < 4; pass++) {
-    for (let r = 1; r < rowsCount; r++) sweep(r, (id) => parentsOf.get(id)!);
-    for (let r = rowsCount - 2; r >= 0; r--) sweep(r, (id) => childrenOf.get(id)!);
-  }
-  for (let r = 1; r < rowsCount; r++) sweep(r, (id) => parentsOf.get(id)!);
+  /* ---- 3. ordering, built outward from the focus family (see orderAroundFocus) */
+  orderAroundFocus(g, rows, clusterOf, parentsOf, childrenOf, gen, opts.focus);
+  reduceCrossings(rows, clusterOf, parentsOf, childrenOf, gen);
 
   /* ---- 4. coordinates */
   for (const row of rows) {
@@ -263,6 +243,268 @@ export function computeLayout(g: FamilyGraph): Layout {
     gen,
     bounds: { minX: 0, minY: 0, maxX: maxX - minX, maxY: (rowsCount - 1) * ROW_H + CARD_H },
   };
+}
+
+/**
+ * Decides the left-to-right order of the clusters in every row.
+ *
+ * The tree is walked outward from the focus couple, appending clusters to their row as
+ * they're reached, so each row's order is the order of the walk. Everything is appended in
+ * whole "blocks" (a person's family on one side of them), which keeps families together:
+ *  - The focus couple's left partner gets their whole family to the left, the right
+ *    partner theirs to the right; the couple's descendants hang in between.
+ *  - `up(P, side)`: P's parents with, on the outer side, the outer parent's own family, then
+ *    P's brothers and sisters (and their partners' families further out), and on the inner
+ *    side the inner parent's family. So a parent's father and mother stay above that parent.
+ *  - `down(C)`: a couple's children in birth order; the first half have their partner (and
+ *    the partner's family) on the left, the rest on the right, so in-laws spread outward.
+ */
+function orderAroundFocus(
+  g: FamilyGraph,
+  rows: Cluster[][],
+  clusterOf: Map<Id, Cluster>,
+  parentsOf: Map<Id, Id[]>,
+  childrenOf: Map<Id, Id[]>,
+  gen: Record<Id, number>,
+  focus?: Id[],
+) {
+  const order: Cluster[][] = rows.map(() => []);
+  const placed = new Set<Cluster>();
+  const busy = new Set<Cluster>();
+  const done = (cl: Cluster) => placed.has(cl) || busy.has(cl);
+  const emit = (cl: Cluster) => {
+    if (placed.has(cl)) return;
+    placed.add(cl);
+    order[cl.row].push(cl);
+  };
+  const sexRank = (id: Id) => (g.people[id]?.sex === 'male' ? 0 : g.people[id]?.sex === 'female' ? 2 : 1);
+  // Couples read husband, wife unless something below decides otherwise.
+  for (const row of rows)
+    for (const cl of row) if (cl.members.length === 2 && sexRank(cl.members[0]) > sexRank(cl.members[1])) cl.members.reverse();
+
+  /** Put `anchor` on the inner edge: the right end when the block grows left, and vice versa. */
+  const orient = (cl: Cluster, anchor: Id, side: 'left' | 'right') => {
+    if (placed.has(cl) || cl.members.length < 2) return;
+    const i = cl.members.indexOf(anchor);
+    if (cl.members.length === 2) {
+      if ((side === 'left') !== (i === 1)) cl.members.reverse();
+    } else if ((side === 'left' && i < (cl.members.length - 1) / 2) || (side === 'right' && i > (cl.members.length - 1) / 2)) {
+      cl.members.reverse();
+    }
+  };
+  const cmpBirthIds = (a: Id, b: Id) => cmpBirth(g, a, b);
+  /** The clusters of `cl`'s children (minus `skip`), ordered by which partner they belong to, then birth. */
+  const childClusters = (cl: Cluster, skip?: Id): { kid: Id; cl: Cluster }[] => {
+    const kids = new Map<Id, number>();
+    cl.members.forEach((m, i) => {
+      for (const k of childrenOf.get(m)!) {
+        if (k === skip || gen[k] <= cl.row) continue;
+        kids.set(k, (kids.get(k) ?? 0) + i);
+      }
+    });
+    const key = (k: Id) => kids.get(k)! / Math.max(1, parentsOf.get(k)!.filter((p) => cl.members.includes(p)).length);
+    const out: { kid: Id; cl: Cluster }[] = [];
+    const seen = new Set<Cluster>();
+    for (const k of [...kids.keys()].sort((a, b) => key(a) - key(b) || cmpBirthIds(a, b))) {
+      const kc = clusterOf.get(k)!;
+      if (kc === cl || seen.has(kc) || done(kc)) continue;
+      seen.add(kc);
+      out.push({ kid: k, cl: kc });
+    }
+    return out;
+  };
+  const parentClusters = (p: Id): Cluster[] => {
+    const out: Cluster[] = [];
+    const ps = [...parentsOf.get(p)!].sort((a, b) => sexRank(a) - sexRank(b) || cmpBirthIds(a, b));
+    for (const q of ps) {
+      const c = clusterOf.get(q)!;
+      if (!out.includes(c)) out.push(c);
+    }
+    return out;
+  };
+
+  const up = (p: Id, side: 'left' | 'right') => {
+    for (const pc of parentClusters(p)) {
+      if (done(pc)) continue;
+      busy.add(pc);
+      const ms = pc.members;
+      const first = ms[0], last = ms[ms.length - 1], mid = ms.slice(1, -1);
+      const sibs = childClusters(pc, p);
+      if (side === 'left') {
+        up(first, 'left');
+        for (const m of mid) up(m, 'left');
+        for (const s of sibs) family(s.kid, s.cl, 'left');
+        emit(pc);
+        if (ms.length > 1) up(last, 'right');
+      } else {
+        if (ms.length > 1) up(first, 'left');
+        emit(pc);
+        for (const m of mid) up(m, 'right');
+        for (const s of sibs) family(s.kid, s.cl, 'right');
+        up(last, 'right');
+      }
+      busy.delete(pc);
+    }
+  };
+  /** A brother's or sister's household, with their partner's family on the outer side. */
+  const family = (anchor: Id, cl: Cluster, side: 'left' | 'right') => {
+    if (done(cl)) return;
+    busy.add(cl);
+    orient(cl, anchor, side);
+    const others = cl.members.filter((m) => m !== anchor);
+    if (side === 'left') for (const o of others) up(o, 'left');
+    downInner(cl);
+    if (side === 'right') for (const o of others) up(o, 'right');
+    busy.delete(cl);
+  };
+  const downInner = (cl: Cluster) => {
+    const kcs = childClusters(cl);
+    const half = Math.floor(kcs.length / 2);
+    kcs.forEach((k, i) => i < half && family(k.kid, k.cl, 'left'));
+    emit(cl);
+    kcs.forEach((k, i) => i >= half && family(k.kid, k.cl, 'right'));
+  };
+  const centre = (cl: Cluster) => {
+    if (done(cl)) return;
+    busy.add(cl);
+    const ms = cl.members;
+    up(ms[0], 'left');
+    for (const m of ms.slice(1, -1)) up(m, 'left');
+    downInner(cl);
+    if (ms.length > 1) up(ms[ms.length - 1], 'right');
+    busy.delete(cl);
+  };
+
+  centre(focusCluster(rows, clusterOf, parentsOf, childrenOf, focus));
+  // Anything not reached (separate families, people on their own) follows on the right.
+  const rest = rows.flat().sort((a, b) => a.row - b.row || cmpBirthIds(a.members[0], b.members[0]));
+  for (const cl of rest) centre(cl);
+
+  order.forEach((row, r) => {
+    rows[r] = row;
+    row.forEach((cl, i) => (cl.order = i));
+  });
+}
+
+/**
+ * The couple the tree is built around: among couples in the focus set, the one through
+ * whom most of the set descends or is descended (so a group of a couple, their children and
+ * their parents picks the couple, not the grandparents). With no focus, everyone counts.
+ */
+function focusCluster(
+  rows: Cluster[][],
+  clusterOf: Map<Id, Cluster>,
+  parentsOf: Map<Id, Id[]>,
+  childrenOf: Map<Id, Id[]>,
+  focus?: Id[],
+): Cluster {
+  const all = rows.flat();
+  const inFocus = new Set((focus ?? []).filter((id) => clusterOf.has(id)));
+  const counts = (ids: Set<Id>) => (cl: Cluster) => {
+    const seen = new Set<Id>(cl.members);
+    const walk = (start: Id[], next: Map<Id, Id[]>) => {
+      const stack = [...start];
+      while (stack.length) for (const n of next.get(stack.pop()!)!) if (!seen.has(n)) (seen.add(n), stack.push(n));
+    };
+    walk(cl.members, parentsOf);
+    walk(cl.members, childrenOf);
+    let n = 0;
+    for (const id of seen) if (ids.has(id)) n++;
+    return n;
+  };
+  const everyone = new Set(clusterOf.keys());
+  const score = counts(inFocus.size ? inFocus : everyone);
+  const total = counts(everyone);
+  let candidates = all;
+  if (inFocus.size) {
+    const withFocus = all.filter((cl) => cl.members.some((m) => inFocus.has(m)));
+    const couples = withFocus.filter((cl) => cl.members.filter((m) => inFocus.has(m)).length >= 2);
+    candidates = couples.length ? couples : withFocus;
+  } else {
+    const couples = all.filter((cl) => cl.members.length >= 2);
+    if (couples.length) candidates = couples;
+  }
+  let best = candidates[0];
+  let bestKey = [-1, -1];
+  for (const cl of candidates) {
+    const key = [score(cl), total(cl)];
+    if (key[0] > bestKey[0] || (key[0] === bestKey[0] && key[1] > bestKey[1])) (best = cl), (bestKey = key);
+  }
+  return best;
+}
+
+/**
+ * Swaps neighbouring clusters (and turns couples around) only when that strictly lowers the
+ * number of crossing lines between the rows on either side, so the family-side structure
+ * stays unless changing it untangles something.
+ */
+function reduceCrossings(
+  rows: Cluster[][],
+  clusterOf: Map<Id, Cluster>,
+  parentsOf: Map<Id, Id[]>,
+  childrenOf: Map<Id, Id[]>,
+  gen: Record<Id, number>,
+) {
+  const at = (id: Id) => {
+    const cl = clusterOf.get(id)!;
+    return cl.order + (cl.members.indexOf(id) + 0.5) / cl.members.length;
+  };
+  /** Lines between row r and r+1: [x on row r, x on row r+1]. A couple's child hangs from their midpoint. */
+  const lines = (r: number): [number, number][] => {
+    const out: [number, number][] = [];
+    for (const cl of rows[r + 1] ?? []) {
+      for (const k of cl.members) {
+        const ps = parentsOf.get(k)!.filter((p) => gen[p] === r);
+        const byCluster = new Map<Cluster, number[]>();
+        for (const p of ps) {
+          const pc = clusterOf.get(p)!;
+          if (!byCluster.has(pc)) byCluster.set(pc, []);
+          byCluster.get(pc)!.push(at(p));
+        }
+        for (const xs of byCluster.values()) out.push([xs.reduce((a, b) => a + b, 0) / xs.length, at(k)]);
+      }
+    }
+    return out;
+  };
+  const crossings = (r: number) => {
+    if (r < 0 || r + 1 >= rows.length) return 0;
+    const ls = lines(r);
+    let n = 0;
+    for (let i = 0; i < ls.length; i++)
+      for (let j = i + 1; j < ls.length; j++) if ((ls[i][0] - ls[j][0]) * (ls[i][1] - ls[j][1]) < 0) n++;
+    return n;
+  };
+  const near = (r: number) => crossings(r - 1) + crossings(r);
+  const hasLines = (cl: Cluster) =>
+    cl.members.some((m) => parentsOf.get(m)!.length || childrenOf.get(m)!.length);
+  for (let pass = 0; pass < 3; pass++) {
+    let improved = false;
+    for (let r = 0; r < rows.length; r++) {
+      const row = rows[r];
+      if (!row.some(hasLines)) continue;
+      let before = near(r);
+      for (let i = 0; i + 1 < row.length; i++) {
+        if (!hasLines(row[i]) && !hasLines(row[i + 1])) continue;
+        const swap = () => {
+          [row[i], row[i + 1]] = [row[i + 1], row[i]];
+          row[i].order = i;
+          row[i + 1].order = i + 1;
+        };
+        swap();
+        const after = near(r);
+        if (after < before) (before = after), (improved = true);
+        else swap();
+      }
+      for (const cl of row) {
+        if (cl.members.length < 2 || !hasLines(cl)) continue;
+        cl.members.reverse();
+        const after = near(r);
+        if (after < before) (before = after), (improved = true);
+        else cl.members.reverse();
+      }
+    }
+    if (!improved) break;
+  }
 }
 
 /**

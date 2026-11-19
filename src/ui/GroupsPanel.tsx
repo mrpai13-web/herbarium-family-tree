@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Pencil, Plus, Star, Trash2, X } from 'lucide-react';
+import { BookUser, Eye, EyeOff, Pencil, Plus, Star, Trash2, X } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { GROUP_COLORS, groupList } from '../core/groups';
 import { fullName } from '../core/dates';
-import { useStore } from '../data/store';
+import { focusGroup, useStore } from '../data/store';
 import { EditableText } from './bits';
 import { Hint } from './Hint';
 
@@ -19,6 +19,7 @@ export function GroupsPanel({ onClose }: { onClose(): void }) {
   const selectedId = useStore((s) => s.selectedId);
   const s = useStore.getState;
   const groups = groupList(graph);
+  const centredOn = useStore((st) => focusGroup(st)?.id);
   const box = useRef<HTMLDivElement>(null);
   const close = useRef(onClose);
   close.current = onClose;
@@ -101,6 +102,7 @@ export function GroupsPanel({ onClose }: { onClose(): void }) {
                 <p className="min-w-0 flex-1 truncate font-label text-[11px] text-ink-muted">
                   {gr.memberIds.length} {gr.memberIds.length === 1 ? 'person' : 'people'}
                   {names.length ? ` · ${names.slice(0, 4).join(', ')}${names.length > 4 ? '…' : ''}` : ' · empty'}
+                  {centredOn === gr.id && groups.length > 1 && <span className="text-moss-deep"> · tree arranged around this family</span>}
                 </p>
                 <Hint text={gr.core ? 'This is the main family: its name is the title' : 'Make this the main family (its name becomes the title)'}>
                   <button
@@ -113,7 +115,7 @@ export function GroupsPanel({ onClose }: { onClose(): void }) {
                     <Star size={15} fill={gr.core ? 'currentColor' : 'none'} />
                   </button>
                 </Hint>
-                <Hint text={shown ? 'Hide the box' : 'Show a box around this group on the tree'}>
+                <Hint text={shown ? 'Hide the box' : 'Show a box around this group on the tree and arrange the tree around it'}>
                   <button
                     type="button"
                     className={`${iconBtn} ${shown ? 'text-moss-deep' : 'text-ink-muted'}`}
@@ -122,6 +124,19 @@ export function GroupsPanel({ onClose }: { onClose(): void }) {
                     onClick={() => s().showGroup(shown ? null : gr.id)}
                   >
                     {shown ? <Eye size={15} /> : <EyeOff size={15} />}
+                  </button>
+                </Hint>
+                <Hint text="Contact list: everyone’s phone and email, to copy, print or save as a spreadsheet">
+                  <button
+                    type="button"
+                    className={`${iconBtn} text-ink-muted`}
+                    aria-label={`Contact list for ${gr.name}`}
+                    onClick={() => {
+                      s().openContactList(gr.id);
+                      onClose();
+                    }}
+                  >
+                    <BookUser size={15} />
                   </button>
                 </Hint>
                 <Hint text="Add or remove people by clicking their cards">

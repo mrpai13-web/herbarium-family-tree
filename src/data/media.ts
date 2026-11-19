@@ -1,7 +1,7 @@
 /** Client-side media processing: image compression, audio analysis, blob URL cache. */
 import { computePeaks, encodeWav } from '../core/waveform';
 import { db } from './db';
-import { fetchRemoteMedia, sharedRepo } from '../sync/config';
+import { fetchRemoteMedia, sharedTree } from '../sync/config';
 import type { MediaRecord } from '../core/types';
 
 export const IMAGE_MAX = 1600;
@@ -98,7 +98,7 @@ export async function mediaUrl(id: string, which: 'blob' | 'thumb' = 'blob'): Pr
   if (!rec) return undefined;
   let b: Blob | undefined = which === 'thumb' ? rec.thumb ?? rec.blob : rec.blob;
   // A shared tree's file not downloaded yet: fetch it once, then it's cached locally.
-  if (!b && sharedRepo) b = await fetchRemoteMedia(id, which).catch(() => undefined);
+  if (!b && sharedTree) b = await fetchRemoteMedia(id, which).catch(() => undefined);
   if (!b) return undefined;
   if (urls.has(key)) return urls.get(key);
   const url = URL.createObjectURL(b);
@@ -112,7 +112,7 @@ const hasThumb = (r: MediaRecord) => Boolean((r as MediaRecord & { hasThumb?: bo
 export async function mediaBlob(rec: MediaRecord, which: 'blob' | 'thumb'): Promise<Blob | undefined> {
   const local = which === 'thumb' ? rec.thumb : rec.blob;
   if (local) return local;
-  if (rec.blob || !sharedRepo || (which === 'thumb' && !hasThumb(rec))) return undefined;
+  if (rec.blob || !sharedTree || (which === 'thumb' && !hasThumb(rec))) return undefined;
   const b = await fetchRemoteMedia(rec.id, which);
   if (!b) throw new Error(`Couldn’t download “${rec.title ?? rec.caption ?? 'a file'}”.`);
   return b;

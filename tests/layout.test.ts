@@ -178,3 +178,100 @@ describe('generations line up across families', () => {
     expect(L.gen.Grandchild).toBe(row[0] + 1);
   });
 });
+
+describe('families stay on their own side', () => {
+  // Michael Pai and Sherri Ann at the centre; Michael's brother Frank married Gloria;
+  // Sherri's sister Irene married Mike Sakoda. Every family has parents recorded.
+  function pai() {
+    const g: FamilyGraph = { people: {}, parentLinks: {}, unions: {}, groups: {} };
+    let k = 0;
+    const person = (n: string) =>
+      (g.people[n] ??= {
+        id: n, givenName: n, surname: '', galleryIds: [], audioIds: [], createdAt: k++, updatedAt: 0,
+        sex: /^(Michael|Frank|Mike|.*Dad|.*Pa|Bro.*|Son.*)/.test(n) ? 'male' : 'female',
+      });
+    const parents = (child: string, ...ps: string[]) => {
+      person(child);
+      for (const p of ps) {
+        person(p);
+        const lid = `l${k++}`;
+        g.parentLinks[lid] = { id: lid, parentId: p, childId: child, kind: 'biological' };
+      }
+      if (ps.length === 2 && !Object.values(g.unions).some((u) => u.partners.includes(ps[0]) && u.partners.includes(ps[1]))) married(ps[0], ps[1]);
+    };
+    const married = (a: string, b: string) => {
+      person(a);
+      person(b);
+      const uid = `u${k++}`;
+      g.unions[uid] = { id: uid, partners: [a, b], kind: 'married', status: 'current' };
+    };
+    parents('PaiDad', 'PaiGPa', 'PaiGMa');
+    parents('PaiMom', 'MomGPa', 'MomGMa');
+    parents('Michael', 'PaiDad', 'PaiMom');
+    parents('Frank', 'PaiDad', 'PaiMom');
+    parents('Gloria', 'GloriaDad', 'GloriaMom');
+    parents('GloriaSis', 'GloriaDad', 'GloriaMom');
+    married('Frank', 'Gloria');
+    parents('Son1', 'Frank', 'Gloria');
+    parents('Sherri', 'SherriDad', 'SherriMom');
+    parents('Irene', 'SherriDad', 'SherriMom');
+    parents('Mike', 'SakodaDad', 'SakodaMom');
+    parents('BroSakoda', 'SakodaDad', 'SakodaMom');
+    married('Irene', 'Mike'); // stored wife first: the layout still puts each by their family
+    parents('Cousin', 'Mike', 'Irene');
+    married('Sherri', 'Michael');
+    parents('Son2', 'Michael', 'Sherri');
+    parents('Daughter2', 'Michael', 'Sherri');
+    return g;
+  }
+  const crossings = (g: FamilyGraph, L: ReturnType<typeof computeLayout>) => {
+    const mid = (id: string) => L.pos[id].x + CARD_W / 2;
+    const lines: [number, number, number][] = [];
+    for (const c of Object.keys(g.people)) {
+      const ps = Object.values(g.parentLinks).filter((l) => l.childId === c).map((l) => l.parentId);
+      if (!ps.length) continue;
+      lines.push([L.gen[c], ps.reduce((s, p) => s + mid(p), 0) / ps.length, mid(c)]);
+    }
+    let n = 0;
+    for (const a of lines) for (const b of lines) if (a !== b && a[0] === b[0] && (a[1] - b[1]) * (a[2] - b[2]) < 0) n++;
+    return n / 2;
+  };
+  const x = (L: ReturnType<typeof computeLayout>, n: string) => L.pos[n].x;
+  /** Everyone on the left side is left of everyone on the right side who shares their row. */
+  const sides = (L: ReturnType<typeof computeLayout>, left: string[], right: string[]) => {
+    for (const a of left)
+      for (const b of right) if (L.gen[a] === L.gen[b]) expect(x(L, a), `${a} left of ${b}`).toBeLessThan(x(L, b));
+  };
+
+  it('puts Michael’s family on the left and Sherri’s on the right, with no crossing lines', () => {
+    const g = pai();
+    const L = computeLayout(g, { focus: ['Michael', 'Sherri', 'Son2', 'Daughter2'] });
+    sides(L, ['Michael', 'PaiDad', 'PaiMom', 'PaiGPa', 'MomGMa', 'Frank', 'Gloria', 'GloriaDad', 'GloriaSis', 'Son1'],
+      ['Sherri', 'SherriDad', 'SherriMom', 'Irene', 'Mike', 'SakodaDad', 'BroSakoda', 'Cousin']);
+    expect(x(L, 'Michael')).toBeLessThan(x(L, 'Sherri'));
+    expect(crossings(g, L)).toBe(0);
+  });
+
+  it('keeps each partner’s parents on that partner’s side', () => {
+    const g = pai();
+    const L = computeLayout(g, { focus: ['Michael', 'Sherri'] });
+    // Frank and Gloria: Gloria's family further out (left), next to Gloria.
+    expect(x(L, 'Gloria')).toBeLessThan(x(L, 'Frank'));
+    expect(x(L, 'GloriaDad')).toBeLessThan(x(L, 'PaiDad'));
+    // Irene and Mike Sakoda: Mike's family further out (right), next to Mike.
+    expect(x(L, 'Irene')).toBeLessThan(x(L, 'Mike'));
+    expect(x(L, 'SakodaDad')).toBeGreaterThan(x(L, 'SherriMom'));
+    // Michael's father's parents above his father, his mother's above his mother.
+    expect(x(L, 'PaiGPa')).toBeLessThan(x(L, 'MomGPa'));
+    expect(x(L, 'PaiDad')).toBeLessThan(x(L, 'PaiMom'));
+  });
+
+  it('rebuilds around whichever family is the focus', () => {
+    const g = pai();
+    const L = computeLayout(g, { focus: ['Mike', 'Irene', 'Cousin'] });
+    expect(x(L, 'Mike')).toBeLessThan(x(L, 'Irene'));
+    sides(L, ['Mike', 'SakodaDad', 'SakodaMom', 'BroSakoda'], ['Irene', 'SherriDad', 'SherriMom', 'Sherri', 'Michael', 'PaiDad']);
+    expect(crossings(g, L)).toBe(0);
+    assertNoOverlap(g);
+  });
+});

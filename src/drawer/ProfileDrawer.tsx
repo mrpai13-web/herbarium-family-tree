@@ -226,6 +226,36 @@ export function ProfileDrawer({ person, onClose }: { person: Person; onClose(): 
               </select>
             </Hint>
           </label>
+          <label className="flex flex-col gap-0.5" htmlFor="phone">
+            <span className="px-2 text-[10.5px] font-semibold uppercase tracking-[0.1em] text-ink-muted">Phone</span>
+            <EditableText
+              id="phone"
+              type="tel"
+              label="Phone"
+              value={person.phone ?? ''}
+              placeholder={person.deathDate ? '' : 'Phone number'}
+              hint="A phone number, e.g. (808) 555-0142. Several? Separate them with commas. Used by a family group's contact list."
+              className="text-[13px]"
+              onCommit={(v) => set({ phone: v || undefined })}
+            />
+          </label>
+          <label className="flex flex-col gap-0.5" htmlFor="email">
+            <span className="px-2 text-[10.5px] font-semibold uppercase tracking-[0.1em] text-ink-muted">Email</span>
+            <EditableText
+              id="email"
+              type="email"
+              label="Email"
+              value={person.email ?? ''}
+              placeholder={person.deathDate ? '' : 'name@example.com'}
+              hint="An email address. Several? Separate them with commas. Used by a family group's contact list."
+              className="text-[13px]"
+              onCommit={(v) => {
+                set({ email: v || undefined });
+                if (v && v.split(/\s*[,;]\s*/).some((e) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)))
+                  useStore.getState().toast('That email looks incomplete. It’s saved as typed; check it has an @ and a domain.');
+              }}
+            />
+          </label>
         </div>
 
         <Section title="Family">

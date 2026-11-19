@@ -14,8 +14,11 @@ export function EditableText({
   autoFocusSelect = false,
   label,
   hint,
+  type = 'text',
 }: {
   id: string;
+  /** tel and email bring up the right phone keyboard. */
+  type?: 'text' | 'tel' | 'email';
   value: string;
   onCommit(v: string): void;
   placeholder?: string;
@@ -40,6 +43,7 @@ export function EditableText({
       ref={ref}
       id={id}
       aria-label={label}
+      type={type}
       className={`field ${className}`}
       value={v}
       placeholder={placeholder}

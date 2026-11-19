@@ -49,6 +49,11 @@ sample family* on the empty tree, or **Archive → Restore the sample family**.
     or remove them, then *Done* (or Esc / Enter).
   - Rename inline, click the dot to change colour, or delete the group (people stay).
   - In a profile, *Groups* shows chips to add or remove that person, and *New group*.
+  - The tree is **arranged around the group last shown**: its central couple in the
+    middle, one partner's family to the left and the other's to the right.
+  - The book icon opens the group's **contact list** from everyone's *Phone* and *Email*
+    (living members only): copy it, save it as a spreadsheet (CSV), print it, or email
+    everyone. People with no contact yet have a link to their profile.
   Groups are saved with the tree, included in backups, and undoable.
 - **Canvas never empties:** panning and zooming always keep part of the tree on screen.
 - **Add people:** *Add person* (top right) adds someone not yet connected. In a profile,
@@ -66,7 +71,7 @@ sample family* on the empty tree, or **Archive → Restore the sample family**.
   always asks first; Cancel has focus, and Esc cancels. Keys typed in text fields never delete.
 - **Profile drawer:** click a card. Everything is edited in place and saved as you go
   (on blur / Enter): names, dates (`1938`, `Nov 1938`, `2 Nov 1938`, `2/11/1938`),
-  birthplace, story, relationships. Hover or focus any field for a short explanation.
+  birthplace, phone, email, story, relationships. Hover or focus any field for a short explanation.
 - **Dates:** type them, or press the calendar button next to any date. The calendar
   can save an exact day, just a month, or just a year (type a year to jump to it;
   arrow keys move between days).
@@ -81,37 +86,48 @@ sample family* on the empty tree, or **Archive → Restore the sample family**.
   replacing the current tree after a confirmation. Browsers can clear site data, so
   export now and then.
 
-## Sharing (`src/sync/`)
+## Sharing (`src/sync/`, `supabase/schema.sql`)
 
 The app itself is public (GitHub Pages, built by `.github/workflows/pages.yml`); it holds
 no family data. Without sharing it is exactly as before: one private tree in this browser.
 
-Sharing keeps a tree in a **private GitHub repository** owned by whoever shares it:
+A shared tree lives in the family's **Supabase** project (Postgres + private file storage).
+Access is **members only**, enforced by the database's row-level security rules, not by
+the app: signed-out visitors and signed-in people who weren't invited can't read anything,
+not even whether a tree exists.
 
-1. **Share** -> sign in with a GitHub token (the panel links to a pre-filled token page
-   with the `repo` scope; the token is kept in this browser's localStorage and only sent
-   to api.github.com) -> **Put this tree on GitHub**. This creates a private repo
-   `<name>-tree`, commits the tree and its photos and voice memories, and gives a link
-   `…/?repo=owner/name`. The private tree in this browser stays as it was.
-2. The owner adds relatives by GitHub username under *Who can open and edit*. GitHub
-   emails them an invitation; once accepted they open the link and sign in with their
-   own token. Everyone added can view and edit (GitHub has no read-only collaborators on
-   personal repos).
-3. Edits save automatically, one commit per save, so the repo's history records every
-   change. The Share button shows *All changes saved*, *Saving…* or *Offline* (changes wait
-   in an outbox and go up when back online). Other people's edits arrive within ~20 s.
+1. **Share** -> type your email -> type the 6-digit code from the email (or click its
+   link on the same device) -> **Put this tree online**. The tree, photos and voice
+   memories are copied up and you get a link `…/?tree=<id>`. Your private tree stays as it
+   was.
+2. In the shared tree the owner invites people by email as **Can view** or **Can edit**
+   (changeable later, or removed). Inviting sends nothing: send them the link. They open
+   it and sign in with that email address; no password or account setup.
+3. Edits save automatically; the Share button shows *All changes saved*, *Saving…* or
+   *Offline* (changes wait in an outbox and go up when back online). Other people's edits
+   arrive within seconds (a broadcast nudge) or ~20 s at worst.
+4. **Signing out**, or opening the tree after being removed, deletes this browser's copy
+   of the shared tree, so a shared computer doesn't keep it.
 
-Repository layout: `tree.json` (`format: "herbarium-shared-tree"`, all rows by table),
-`media/<id>` and `media/<id>.thumb` (raw files). How it syncs: each shared tree has its own
-IndexedDB cache (`herbarium-shared-<owner>__<repo>`). A Dexie middleware (`src/data/db.ts`)
-reports every local write; `src/sync/engine.ts` pushes by re-reading `tree.json` at the
-branch head, overlaying the changed rows and committing through the Git Data API with a
-non-forced ref update, so a concurrent save makes it retry on top of the other person's
-commit (different people's edits never overwrite each other; the same row: last save
-wins). Pulls poll the branch ref with an ETag (304s are free). Photos download on first
-view and are then cached. In a tree you can't edit, edit actions are guarded, handles are
-hidden and profile fields are read-only; replacing a shared tree (import, sample, start
-over) is never allowed.
+Roles: owner (whoever shared it: everything, and the only one who sees the member list),
+editor (read and write rows and files), viewer (read only). Deleting a person clears their
+row's data on the server (no old copy is kept). A row can never be moved to another tree.
+`supabase/schema.sql` is the whole server setup and is safe to run again; its rules were
+checked on real Postgres (PGlite) for each role, signed-out and uninvited visitors.
+
+How it syncs: each shared tree has its own IndexedDB cache (`herbarium-shared-<id>`). A
+Dexie middleware (`src/data/db.ts`) reports every local write; `src/sync/engine.ts` upserts
+changed rows (`records`: one JSON row per person, link, union, group or media caption,
+with a sequence number) and pulls everything after the last sequence it saw. Photos and
+recordings are in the private bucket `family-media` at `<tree>/<media>/blob|thumb`,
+downloaded on first view and then cached. In a tree you can't edit, edit actions are
+guarded, handles are hidden and profile fields are read-only; replacing a shared tree
+(import, sample, start over) is never allowed.
+
+The project URL and publishable key are in `src/sync/config.ts` (both are public by
+design; `.env` `VITE_SUPABASE_URL` / `VITE_SUPABASE_KEY` override them for testing).
+Sign-in emails go through the owner's Gmail (custom SMTP), because Supabase's built-in
+mailer only sends to the project's own team.
 
 ## Line styles
 
@@ -130,7 +146,7 @@ A graph, not a binary tree:
 
 - **Person**: names (given, middle, surname, nickname, birth surname), sex (only for
   wording such as mother/father), fuzzy dates (`"1938"`, `"1938-11"`, `"1938-11-02"`),
-  birthplace, bio, `photoId`, `galleryIds[]`, `audioIds[]`.
+  birthplace, `phone`, `email` (free text; commas separate several), bio, `photoId`, `galleryIds[]`, `audioIds[]`.
 - **ParentLink** `{parentId, childId, kind: biological | adoptive | step | foster, since?}`:
   one edge per parent, so a child can have any number of parents of any kind.
 - **Union** `{partners: [a, b], kind: married | partners, status: current | widowed |
@@ -160,8 +176,17 @@ their new places.
    can't loop.
 2. **Partner clusters.** Partners in a row form one unbreakable unit. A person with
    several partners sits in the middle: former partners left, current right.
-3. **Ordering.** Barycentre sweeps (Sugiyama-style) put each cluster near its parents
-   and children, which keeps crossings low; siblings keep birth order on ties.
+3. **Ordering, around a focus family.** The tree is built outward from the central
+   couple of the *focus* group (the group last shown with the eye; else the main family;
+   else the first group; with no groups, the couple with the most direct ancestors and
+   descendants). One partner's whole family goes to the left, the other's to the right,
+   and the same rule applies at every couple: a person's parents sit above them, the
+   outer parent's family further out, their brothers and sisters beside them, and each
+   in-law's family on that in-law's side. A couple's children are in birth order, the
+   first half with their partner's family on the left, the rest on the right. Then
+   neighbouring clusters are swapped (or couples turned round) only where that strictly
+   lowers the number of crossing lines. The focus is kept while a group's members are
+   being picked, so the tree doesn't rearrange under each click.
 4. **Coordinates.** Each row is solved as "as close as possible to where my family
    wants me, never closer than the minimum gap" using isotonic regression
    (pool-adjacent-violators), alternating top-down and bottom-up passes. The spacing
@@ -196,9 +221,10 @@ Dev builds expose `window.__store` and `window.__archive` for automated checks.
   starts empty: use Export / Import, or share the tree to keep it online.
 - Shared trees: two people editing the *same person* at the same moment, the later save
   wins. Undo is per person and can undo someone else's later edit to the same row.
-  Each relative needs a GitHub account and a token; a token with the `repo` scope can
-  reach all of that person's repositories, so it should stay on their own devices.
-  GitHub repos work best under ~1 GB, roughly 3,000 photos at the app's compression.
+  Supabase's free plan: 500 MB database, 1 GB of photos and recordings (roughly 3,000
+  photos at the app's compression), and the project pauses after a week with no visits
+  (one click in the Supabase dashboard wakes it). No automatic backups on the free plan:
+  keep an Export now and then.
 - Recording needs a secure origin (`localhost` is fine) and microphone permission.
 - Very large trees (hundreds of people) re-render every card during the 0.5 s glide
   after an edit; fine at family scale, not yet virtualised.

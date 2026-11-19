@@ -23,6 +23,7 @@ import type {
 import { newId } from '../core/relations';
 import { fullName } from '../core/dates';
 import { nextGroupColor, suggestGroupName } from '../core/groups';
+import { upgradePerson } from '../core/contacts';
 import { db } from './db';
 import { analyseAudio, compressImage, forgetAllMediaUrls, forgetMediaUrl } from './media';
 import { buildSeed } from './seed';
@@ -72,6 +73,11 @@ interface State {
   shownGroupId: Id | null;
   /** While true, clicking a card adds it to / removes it from the shown group. */
   groupEditing: boolean;
+  /** The group last shown: the tree is laid out around it (remembered in this browser). */
+  focusGroupId: Id | null;
+  /** The group whose contact list is open, if any. */
+  contactListGroupId: Id | null;
+  openContactList(id: Id | null): void;
   /** Undo / redo stacks (newest last). Cleared by importing, restoring the sample or starting over. */
   past: HistoryEntry[];
   future: HistoryEntry[];
@@ -129,9 +135,39 @@ let toastId = 0;
 
 let loading: Promise<void> | null = null;
 
+const FOCUS_KEY = 'herbarium-focus-group';
+function readFocusGroup(): Id | null {
+  try {
+    return localStorage.getItem(FOCUS_KEY);
+  } catch {
+    return null;
+  }
+}
+function writeFocusGroup(id: Id) {
+  try {
+    localStorage.setItem(FOCUS_KEY, id);
+  } catch {
+    /* storage blocked: remembered for this visit only */
+  }
+}
+
+/**
+ * Who the tree is laid out around: the last shown family group if it still exists,
+ * else the main family, else the first group. Undefined when there are no groups.
+ */
+export function focusGroup(s: Pick<State, 'graph' | 'focusGroupId'>): Group | undefined {
+  const gs = s.graph.groups ?? {};
+  return (s.focusGroupId && gs[s.focusGroupId]) || Object.values(gs).find((x) => x.core) || Object.values(gs).sort((a, b) => a.createdAt - b.createdAt)[0];
+}
+
+export function layoutFocus(s: Pick<State, 'graph' | 'focusGroupId'>): Id[] | undefined {
+  const gr = focusGroup(s);
+  return gr?.memberIds.length ? gr.memberIds : undefined;
+}
+
 const FIELD_NAMES: Partial<Record<keyof Person, string>> = {
   givenName: 'name', middleName: 'middle name', surname: 'surname', nickname: 'nickname', birthSurname: 'birth surname',
-  sex: 'wording', birthDate: 'birth date', deathDate: 'death date', birthplace: 'birthplace', bio: 'story',
+  sex: 'wording', birthDate: 'birth date', deathDate: 'death date', birthplace: 'birthplace', phone: 'phone', email: 'email', bio: 'story',
   photoId: 'portrait', galleryIds: 'photos', audioIds: 'voice memories',
 };
 
@@ -217,12 +253,18 @@ export const useStore = create<State>((set, get) => {
   future: [],
   shownGroupId: null,
   groupEditing: false,
+  focusGroupId: readFocusGroup(),
+  contactListGroupId: null,
+  openContactList(id) {
+    set({ contactListGroupId: id });
+  },
 
   async createGroup(memberIds = []) {
     const g = get().graph;
     const gr: Group = { id: newId(), name: suggestGroupName(g, memberIds), memberIds, color: nextGroupColor(g), createdAt: Date.now() };
     await saveGroups({ ...(g.groups ?? {}), [gr.id]: gr }, `Create group “${gr.name}”`);
-    set({ shownGroupId: gr.id, groupEditing: true });
+    set({ shownGroupId: gr.id, groupEditing: true, focusGroupId: gr.id });
+    writeFocusGroup(gr.id);
     return gr.id;
   },
 
@@ -269,7 +311,8 @@ export const useStore = create<State>((set, get) => {
   },
 
   showGroup(id) {
-    set({ shownGroupId: id, groupEditing: id ? get().groupEditing : false });
+    set({ shownGroupId: id, groupEditing: id ? get().groupEditing : false, ...(id ? { focusGroupId: id } : {}) });
+    if (id) writeFocusGroup(id);
   },
 
   setGroupEditing(on) {
@@ -326,7 +369,7 @@ export const useStore = create<State>((set, get) => {
     });
     set({
       graph: {
-        people: Object.fromEntries(people.map((p) => [p.id, p])),
+        people: Object.fromEntries(people.map((p) => [p.id, upgradePerson(p)])),
         parentLinks: Object.fromEntries(links.map((l) => [l.id, l])),
         unions: Object.fromEntries(unions.map((u) => [u.id, u])),
         groups: Object.fromEntries(groups.map((x) => [x.id, x])),
@@ -346,7 +389,7 @@ export const useStore = create<State>((set, get) => {
     await db.media.each((m) => {
       mediaMeta[m.id] = strip(m);
     });
-    const peopleById = Object.fromEntries(people.map((p) => [p.id, p]));
+    const peopleById = Object.fromEntries(people.map((p) => [p.id, upgradePerson(p)]));
     set((s) => ({
       graph: {
         people: peopleById,

@@ -6,11 +6,12 @@ import { useStore } from './data/store';
 import { ProfileDrawer } from './drawer/ProfileDrawer';
 import { Toasts } from './ui/bits';
 import { ConfirmDialog } from './ui/ConfirmDialog';
+import { ContactList } from './ui/ContactList';
 import { EmptyTree } from './ui/EmptyTree';
 import { confirmDeleteMedia, confirmDeletePerson } from './data/deletes';
 import { TopBar } from './ui/TopBar';
 import { personMatches } from './core/dates';
-import { sharedRepo } from './sync/config';
+import { sharedTree } from './sync/config';
 import { loadSession, startSync, useSync } from './sync/engine';
 
 export function App() {
@@ -27,7 +28,7 @@ export function App() {
     load()
       .then(() => {
         // Network trouble isn't fatal: the cached copy stays usable and the status says why.
-        const connect = sharedRepo ? startSync(() => useStore.getState().reload()) : loadSession();
+        const connect = sharedTree ? startSync(() => useStore.getState().reload()) : loadSession();
         connect.catch((e: Error) => useSync.setState({ status: navigator.onLine ? 'error' : 'offline', problem: e.message, firstLoad: false }));
       })
       .catch((e: Error) => setError(e.message));
@@ -115,9 +116,9 @@ export function App() {
       )}
       {empty && !firstLoad &&
         (signin ? (
-          <SharedNotice text="This family tree is private. Use the Sign in button at the top right to sign in with your GitHub account." />
+          <SharedNotice text="This family tree is private. Use the Sign in button at the top right to sign in with the email address you were invited with." />
         ) : missing ? (
-          <SharedNotice text="Your GitHub account can’t open this tree yet. Ask whoever sent the link to add your GitHub username, then accept the invitation GitHub emails you." />
+          <SharedNotice text="This email address isn’t invited to this tree. Ask whoever sent the link to invite it (Share button), or sign out and use the address they invited." />
         ) : canEdit ? (
           <EmptyTree />
         ) : (
@@ -135,6 +136,7 @@ export function App() {
         }}
       />
       <AnimatePresence>{person && <ProfileDrawer key="drawer" person={person} onClose={() => select(null)} />}</AnimatePresence>
+      <ContactList />
       <ConfirmDialog />
       <Toasts />
     </div>

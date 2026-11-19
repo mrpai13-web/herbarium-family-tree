@@ -58,11 +58,11 @@ export function fullName(p: Pick<Person, 'givenName' | 'surname'> & { middleName
   return [p.givenName, p.middleName, p.surname].filter(Boolean).join(' ') || 'Unnamed';
 }
 
-/** Search: names (given, middle, surname, nickname, birth surname) and birthplace. */
+/** Search: names (given, middle, surname, nickname, birth surname), birthplace, phone and email. */
 export function personMatches(p: Person, query: string): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return true;
-  return [p.givenName, p.middleName, p.surname, p.nickname, p.birthSurname, p.birthplace].some((v) => v?.toLowerCase().includes(q));
+  return [p.givenName, p.middleName, p.surname, p.nickname, p.birthSurname, p.birthplace, p.phone, p.email].some((v) => v?.toLowerCase().includes(q));
 }
 
 export function initials(p: Pick<Person, 'givenName' | 'surname'>): string {
