@@ -98,6 +98,14 @@ alter table public.records enable row level security;
 -- Nothing is readable without signing in.
 revoke all on public.trees, public.tree_members, public.records from anon;
 
+-- Signed-in people may use the tables at all (newer Supabase projects don't grant this
+-- automatically); the row-level rules below still decide which rows each one sees.
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on public.trees, public.tree_members to authenticated;
+grant select, insert, update on public.records to authenticated;
+grant usage, select on sequence public.records_seq to authenticated;
+grant execute on function public.tree_role(uuid), public.is_member(uuid), public.is_editor(uuid), public.is_owner(uuid) to authenticated;
+
 drop policy if exists trees_insert on public.trees;
 create policy trees_insert on public.trees for insert to authenticated with check (owner = auth.uid());
 drop policy if exists trees_select on public.trees;
