@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { personMatches, yearOf } from '../core/dates';
 import { CARD_H, CARD_W, computeLayout, ROW_H } from '../core/layout';
@@ -56,7 +57,18 @@ export const TreeCanvas = forwardRef<TreeCanvasHandle, { query: string; drawerOp
   const layout = useMemo(() => computeLayout(graph, { focus: focusKey?.split(',') }), [graph, focusKey]);
   const boundsRef = useRef(layout.bounds);
   boundsRef.current = layout.bounds;
-  const { view, setView, zoomBy, fit, centerOn } = useViewport(box, boundsRef);
+  // The minimap only shows while you're moving around (and a moment after), so it
+  // doesn't cover the tree while editing, especially on a phone.
+  const [mapShown, setMapShown] = useState(false);
+  const mapTimer = useRef<number>();
+  const mapHover = useRef(false);
+  const showMap = useCallback(() => {
+    setMapShown(true);
+    window.clearTimeout(mapTimer.current);
+    mapTimer.current = window.setTimeout(() => !mapHover.current && setMapShown(false), 2500);
+  }, []);
+  useEffect(() => () => window.clearTimeout(mapTimer.current), []);
+  const { view, setView, zoomBy, fit, centerOn } = useViewport(box, boundsRef, showMap);
   const pos = useTweenedLayout(layout);
   const [size, setSize] = useState({ w: 1200, h: 800 });
 
@@ -360,17 +372,38 @@ export const TreeCanvas = forwardRef<TreeCanvasHandle, { query: string; drawerOp
         className="absolute bottom-4 flex flex-col items-end gap-3 transition-[right] duration-300"
         style={{ right: rightPad > 60 ? 456 : 16 }}
       >
-        <ZoomControls k={view.k} onIn={() => zoomBy(1.25)} onOut={() => zoomBy(0.8)} onFit={() => doFit()} />
-        <div className="hidden sm:block">
+        <ZoomControls
+          k={view.k}
+          onIn={() => (zoomBy(1.25), showMap())}
+          onOut={() => (zoomBy(0.8), showMap())}
+          onFit={() => (doFit(), showMap())}
+        />
+        <motion.div
+          initial={false}
+          animate={mapShown ? { opacity: 1, y: 0, pointerEvents: 'auto' } : { opacity: 0, y: 8, pointerEvents: 'none' }}
+          transition={{ duration: mapShown ? 0.15 : 0.4 }}
+          aria-hidden={!mapShown}
+          onPointerEnter={() => {
+            mapHover.current = true;
+            showMap();
+          }}
+          onPointerLeave={() => {
+            mapHover.current = false;
+            showMap();
+          }}
+        >
           <Minimap
             pos={pos}
             bounds={layout.bounds}
             view={view}
             size={size}
             selectedId={selectedId}
-            onCenter={(wx, wy) => setView((v) => ({ ...v, x: size.w / 2 - wx * v.k, y: size.h / 2 - wy * v.k }))}
+            onCenter={(wx, wy) => {
+              setView((v) => ({ ...v, x: size.w / 2 - wx * v.k, y: size.h / 2 - wy * v.k }));
+              showMap();
+            }}
           />
-        </div>
+        </motion.div>
       </div>
     </div>
   );

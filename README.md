@@ -56,14 +56,14 @@ sample family* on the empty tree, or **Archive → Restore the sample family**.
     everyone. People with no contact yet have a link to their profile.
   Groups are saved with the tree, included in backups, and undoable.
 - **Canvas never empties:** panning and zooming always keep part of the tree on screen.
-- **Add people:** *Add person* (top right) adds someone not yet connected. In a profile,
+- **Add people:** *Add person* (beside the search box) adds someone not yet connected. In a profile,
   *Family → Add a new relative* has Parent / Partner / Child / Sibling buttons, and
   *Connect someone already in the tree* links two existing people (it refuses loops, such
   as someone becoming their own ancestor).
 - **Undo / redo:** Ctrl+Z (Cmd+Z on a Mac) undoes the last change: adding, editing,
   connecting, unlinking or deleting people, and adding, editing or deleting photos and voice
   memories (deleted files come back too). Ctrl+Shift+Z or Ctrl+Y redoes. The arrow buttons
-  next to *Add person* do the same and name the step. Inside a text field, Ctrl+Z undoes
+  at the top right do the same and name the step. Inside a text field, Ctrl+Z undoes
   typing instead. History holds 60 steps for this session; it's cleared by reloading,
   importing a backup, restoring the sample or starting a new tree.
 - **Delete:** press Delete (or Backspace) to remove what has focus: a photo or voice
@@ -80,7 +80,7 @@ sample family* on the empty tree, or **Archive → Restore the sample family**.
 - **Voice memories:** *Record a memory* uses the microphone (MediaRecorder); *Upload
   audio* or drop MP3 / WAV / M4A. A waveform is computed once and stored.
 - **Canvas:** drag to pan, scroll or pinch to zoom, `F` fits the tree, `+`/`-` zoom,
-  `Esc` closes the drawer. The mini-map moves the view on click or drag.
+  `Esc` closes the drawer. The mini-map appears while you pan or zoom (and fades a few seconds after) and moves the view on click or drag. On touch screens, a drag can start anywhere, cards included; lifting one finger of a pinch keeps panning.
 - **Backups:** *Archive → Export archive (.zip)* saves everything (photos and audio
   included) to a file you choose. *Import archive…* restores a .zip or .json backup,
   replacing the current tree after a confirmation. Browsers can clear site data, so

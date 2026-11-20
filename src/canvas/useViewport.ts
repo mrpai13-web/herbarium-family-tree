@@ -25,7 +25,9 @@ export interface Bounds {
 /** How much of the tree (in screen px) must stay on screen while panning and zooming. */
 const KEEP = 140;
 
-export function useViewport(container: RefObject<HTMLDivElement>, bounds?: RefObject<Bounds>) {
+export function useViewport(container: RefObject<HTMLDivElement>, bounds?: RefObject<Bounds>, onGesture?: () => void) {
+  const gesture = useRef(onGesture);
+  gesture.current = onGesture;
   const [view, setRawView] = useState<View>({ x: 0, y: 0, k: 1 });
   /**
    * Every view change goes through here. A non-finite value (e.g. a zero-distance pinch
@@ -133,6 +135,26 @@ export function useViewport(container: RefObject<HTMLDivElement>, bounds?: RefOb
     const pts = new Map<number, { x: number; y: number }>();
     let start: { x: number; y: number; vx: number; vy: number } | null = null;
     let pinch: { d: number; k: number; cx: number; cy: number; vx: number; vy: number } | null = null;
+    // Pointer moves can arrive faster than the screen redraws; apply at most one view
+    // change per frame so dragging stays smooth on phones with a big tree.
+    let queued: View | null = null;
+    let frame = 0;
+    const apply = (v: View) => {
+      queued = v;
+      if (!frame)
+        frame = requestAnimationFrame(() => {
+          frame = 0;
+          if (queued) setView(queued);
+          queued = null;
+        });
+      gesture.current?.();
+    };
+    const flush = () => {
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
+      if (queued) setView(queued);
+      queued = null;
+    };
 
     const local = (e: PointerEvent) => {
       const r = el.getBoundingClientRect();
@@ -173,7 +195,7 @@ export function useViewport(container: RefObject<HTMLDivElement>, bounds?: RefOb
         const [a, b] = [...pts.values()];
         const k = clampK((pinch.k * Math.hypot(a.x - b.x, a.y - b.y)) / pinch.d);
         const cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2;
-        setView(keepInView({ k, x: cx - ((pinch.cx - pinch.vx) * k) / pinch.k, y: cy - ((pinch.cy - pinch.vy) * k) / pinch.k }));
+        apply(keepInView({ k, x: cx - ((pinch.cx - pinch.vx) * k) / pinch.k, y: cy - ((pinch.cy - pinch.vy) * k) / pinch.k }));
         moved.current = true;
       } else if (start) {
         const dx = p.x - start.x, dy = p.y - start.y;
@@ -185,18 +207,30 @@ export function useViewport(container: RefObject<HTMLDivElement>, bounds?: RefOb
         }
         // Work out the position now: React may run this update after the pointer is
         // released and `start` is cleared, which used to crash with "reading 'vx' of null".
-        const x = start.vx + dx, y = start.vy + dy;
-        setView((v) => keepInView({ ...v, x, y }));
+        apply(keepInView({ ...viewRef.current, k: queued?.k ?? viewRef.current.k, x: start.vx + dx, y: start.vy + dy }));
       }
     };
     const onUp = (e: PointerEvent) => {
       if (!pts.has(e.pointerId)) return;
       pts.delete(e.pointerId);
-      if (pts.size < 2) pinch = null;
+      if (pts.size < 2 && pinch) {
+        pinch = null;
+        // Lifting one finger of a pinch: keep panning with the other, from where it is now.
+        const rest = [...pts.values()][0];
+        flush();
+        if (rest) start = { x: rest.x, y: rest.y, vx: viewRef.current.x, vy: viewRef.current.y };
+      }
       if (pts.size === 0) {
+        flush();
         start = null;
         delete el.dataset.panning;
       }
+    };
+    // Taking over a touch from the card it started on makes the card "lose" it; that event
+    // bubbles up here and used to end the drag the moment it began. Only the canvas's own
+    // capture ending means the pointer is gone.
+    const onLostCapture = (e: PointerEvent) => {
+      if (e.target === el) onUp(e);
     };
     const onWheel = (e: WheelEvent) => {
       if ((e.target as HTMLElement).closest('[data-no-pan]')) return;
@@ -205,6 +239,7 @@ export function useViewport(container: RefObject<HTMLDivElement>, bounds?: RefOb
       const at = { x: e.clientX - r.left, y: e.clientY - r.top };
       const px = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
       zoomBy(Math.exp(-px * (e.ctrlKey ? 0.01 : 0.0018)), at, false);
+      gesture.current?.();
     };
     // A click that ends a drag shouldn't open a card.
     const onClickCapture = (e: MouseEvent) => {
@@ -218,7 +253,7 @@ export function useViewport(container: RefObject<HTMLDivElement>, bounds?: RefOb
     el.addEventListener('pointermove', onMove);
     el.addEventListener('pointerup', onUp);
     el.addEventListener('pointercancel', onUp);
-    el.addEventListener('lostpointercapture', onUp);
+    el.addEventListener('lostpointercapture', onLostCapture);
     // A release outside the canvas (before capture began) still ends the drag.
     window.addEventListener('pointerup', onUp);
     el.addEventListener('wheel', onWheel, { passive: false });
@@ -228,7 +263,8 @@ export function useViewport(container: RefObject<HTMLDivElement>, bounds?: RefOb
       el.removeEventListener('pointermove', onMove);
       el.removeEventListener('pointerup', onUp);
       el.removeEventListener('pointercancel', onUp);
-      el.removeEventListener('lostpointercapture', onUp);
+      el.removeEventListener('lostpointercapture', onLostCapture);
+      if (frame) cancelAnimationFrame(frame);
       window.removeEventListener('pointerup', onUp);
       el.removeEventListener('wheel', onWheel);
       el.removeEventListener('click', onClickCapture, true);

@@ -126,7 +126,8 @@ export function TopBar({ query, onQuery, drawerOpen = false }: { query: string; 
             </div>
           </div>
           <AnimatePresence>{groupsOpen && <GroupsPanel onClose={() => setGroupsOpen(false)} />}</AnimatePresence>
-          <label className="flex h-9 items-center gap-2 rounded-leaf-sm bg-mist px-2.5 text-ink-muted">
+          <div className="flex items-center gap-2">
+          <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-leaf-sm bg-mist px-2.5 text-ink-muted">
             <Search size={15} aria-hidden="true" />
             <Hint text="Matches names, nicknames, birth surnames and birthplaces. Other cards fade.">
             <input
@@ -139,6 +140,16 @@ export function TopBar({ query, onQuery, drawerOpen = false }: { query: string; 
             />
             </Hint>
           </label>
+          {canEdit && people + Object.values(graph.people).filter((p) => p.placeholder).length > 0 && (
+            <Hint text="Adds someone who isn't connected yet. Connect them by dragging the vine handle on their card onto someone else's card.">
+              <button type="button" className="btn-solid h-9 shrink-0 !rounded-leaf-sm !px-3 !py-0" onClick={() => void addPerson()}>
+                <UserPlus size={16} />
+                <span className="hidden min-[420px]:inline">Add person</span>
+                <span className="sr-only min-[420px]:hidden">Add person</span>
+              </button>
+            </Hint>
+          )}
+          </div>
         </div>
 
         <div ref={menuRef} className={`pointer-events-auto relative ml-auto flex items-start gap-2 transition-[margin] duration-300 ${drawerOpen ? 'sm:mr-[440px]' : ''}`}>
@@ -186,15 +197,6 @@ export function TopBar({ query, onQuery, drawerOpen = false }: { query: string; 
             </Hint>
             <AnimatePresence>{shareOpen && <SharePanel onClose={() => setShareOpen(false)} />}</AnimatePresence>
           </div>
-          {canEdit && people + Object.values(graph.people).filter((p) => p.placeholder).length > 0 && (
-            <Hint text="Adds someone who isn't connected yet. Connect them by dragging the vine handle on their card onto someone else's card.">
-              <button type="button" className="btn-solid !rounded-leaf-md !py-2.5 shadow-specimen" onClick={() => void addPerson()}>
-                <UserPlus size={16} />
-                <span className="hidden sm:inline">Add person</span>
-                <span className="sr-only sm:hidden">Add person</span>
-              </button>
-            </Hint>
-          )}
           <button
             type="button"
             className="btn !rounded-leaf-md !py-2.5 shadow-specimen"
