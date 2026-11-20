@@ -9,7 +9,7 @@ import { useStore } from '../data/store';
 import { Hint } from './Hint';
 import { SharePanel, syncWords } from './SharePanel';
 import { sharedTree } from '../sync/config';
-import { useSync } from '../sync/engine';
+import { noteActivity, useSync } from '../sync/engine';
 
 export function TopBar({ query, onQuery, drawerOpen = false }: { query: string; onQuery(q: string): void; drawerOpen?: boolean }) {
   const graph = useStore((s) => s.graph);
@@ -57,7 +57,10 @@ export function TopBar({ query, onQuery, drawerOpen = false }: { query: string; 
       const d = new Date().toISOString().slice(0, 10);
       const name = `${familyTitle(graph).replace(/^The /, '').replace(/\s+/g, '-').toLowerCase()}-archive-${d}.${kind}`;
       const r = await saveFile(blob, name);
-      if (r === 'saved') toast(`Backup saved: ${name} (${(blob.size / 1024 / 1024).toFixed(1)} MB).`);
+      if (r === 'saved') {
+        toast(`Backup saved: ${name} (${(blob.size / 1024 / 1024).toFixed(1)} MB).`);
+        if (sharedTree) void noteActivity('export');
+      }
     } catch (e) {
       toast(`Backup failed: ${(e as Error).message}`, 'error');
     } finally {

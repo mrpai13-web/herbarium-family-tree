@@ -160,3 +160,93 @@ create policy media_insert on storage.objects for insert to authenticated
 drop policy if exists media_delete on storage.objects;
 create policy media_delete on storage.objects for delete to authenticated
   using (bucket_id = 'family-media' and public.is_editor(((storage.foldername(name))[1])::uuid));
+
+-- ------------------------------------------------------------ activity log and reminders
+--
+-- member_activity: when each member last opened a tree and last exported a backup (the app
+-- calls note_activity). Sign-ins come from auth.users, edits from records.updated_at, so
+-- nothing else needs logging. Nobody reads these tables directly: the owner sees their own
+-- tree's log through tree_activity(), and the daily reminder job reads dates only through
+-- monitor_report(), which needs a secret token (its SHA-256 lives in monitor_settings).
+
+create table if not exists public.member_activity (
+  tree_id uuid not null references public.trees (id) on delete cascade,
+  user_id uuid not null,
+  email text not null,
+  last_seen timestamptz,
+  last_export timestamptz,
+  primary key (tree_id, user_id)
+);
+create table if not exists public.monitor_settings (
+  name text primary key,
+  value text not null
+);
+alter table public.member_activity enable row level security;
+alter table public.monitor_settings enable row level security;
+revoke all on public.member_activity, public.monitor_settings from anon, authenticated;
+
+-- A member opened the tree ('visit') or exported a backup of it ('export').
+create or replace function public.note_activity(p_tree uuid, p_kind text) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if p_kind not in ('visit', 'export') then raise exception 'unknown activity'; end if;
+  if not public.is_member(p_tree) then return; end if;
+  insert into member_activity (tree_id, user_id, email, last_seen, last_export)
+  values (p_tree, auth.uid(), lower(coalesce(auth.jwt() ->> 'email', '')), now(), case when p_kind = 'export' then now() end)
+  on conflict (tree_id, user_id) do update
+    set last_seen = now(), email = excluded.email,
+        last_export = coalesce(excluded.last_export, member_activity.last_export);
+end $$;
+revoke execute on function public.note_activity(uuid, text) from public, anon;
+grant execute on function public.note_activity(uuid, text) to authenticated;
+
+-- The owner's activity log for one tree: everyone with access and when they last signed in,
+-- opened it, edited it and exported a backup. Other callers get no rows.
+create or replace function public.tree_activity(p_tree uuid)
+returns table (email text, role text, last_sign_in timestamptz, last_seen timestamptz, last_edit timestamptz, last_export timestamptz)
+language sql stable security definer set search_path = public as $$
+  with people as (
+    select u.id as uid, lower(u.email) as email, 'owner'::text as role
+      from trees t join auth.users u on u.id = t.owner where t.id = p_tree
+    union all
+    select u.id, m.email, m.role
+      from tree_members m left join auth.users u on lower(u.email) = m.email where m.tree_id = p_tree
+  )
+  select p.email, p.role, u.last_sign_in_at, a.last_seen,
+         (select max(r.updated_at) from records r where r.tree_id = p_tree and r.updated_by = p.uid),
+         a.last_export
+    from people p
+    left join auth.users u on u.id = p.uid
+    left join member_activity a on a.tree_id = p_tree and a.user_id = p.uid
+   where public.is_owner(p_tree);
+$$;
+revoke execute on function public.tree_activity(uuid) from public, anon;
+grant execute on function public.tree_activity(uuid) to authenticated;
+
+-- For the daily reminder job: dates and counts only (no names of people, no emails).
+create or replace function public.monitor_report(p_token text) returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+begin
+  if not exists (select 1 from monitor_settings
+                 where name = 'report_token_sha256'
+                   and value = encode(sha256(convert_to(coalesce(p_token, ''), 'UTF8')), 'hex')) then
+    raise exception 'not allowed';
+  end if;
+  return jsonb_build_object(
+    'now', now(),
+    'last_edit', (select max(updated_at) from records),
+    'last_visit', (select max(last_seen) from member_activity),
+    'last_sign_in', (select max(last_sign_in_at) from auth.users),
+    'owner_last_sign_in', (select max(u.last_sign_in_at) from trees t join auth.users u on u.id = t.owner),
+    'owner_last_visit', (select max(a.last_seen) from member_activity a join trees t on t.id = a.tree_id and a.user_id = t.owner),
+    'last_export', (select max(last_export) from member_activity),
+    'trees', (select coalesce(jsonb_agg(jsonb_build_object(
+                'name', t.name,
+                'last_edit', (select max(r.updated_at) from records r where r.tree_id = t.id),
+                'people', (select count(*) from records r where r.tree_id = t.id and r.tbl = 'people' and not r.deleted),
+                'members', (select count(*) from tree_members m where m.tree_id = t.id) + 1)), '[]'::jsonb)
+              from trees t)
+  );
+end $$;
+revoke execute on function public.monitor_report(text) from public;
+grant execute on function public.monitor_report(text) to anon, authenticated;

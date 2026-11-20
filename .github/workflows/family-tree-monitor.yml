@@ -1,0 +1,42 @@
+name: Family tree reminders
+
+# Daily at 8 am Hawaii time (18:00 UTC). Reads activity dates from Supabase and emails the
+# owner when the tree would pause soon, a backup is due, or the database isn't answering.
+# See README "Reminders" and .github/monitor/check.py.
+on:
+  schedule:
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+    inputs:
+      test:
+        description: Send the status email now, even if nothing needs doing
+        type: boolean
+        default: true
+
+permissions:
+  actions: write # only to keep this schedule switched on (see the last step)
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check and email
+        env:
+          MONITOR_TOKEN: ${{ secrets.MONITOR_TOKEN }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
+          TEST: ${{ github.event_name == 'workflow_dispatch' && inputs.test }}
+        run: python .github/monitor/check.py
+      # GitHub switches off scheduled workflows in public repos after 60 days without
+      # commits. Re-enabling it from inside each run keeps the daily check going.
+      - name: Keep the schedule on
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/family-tree-monitor.yml/enable" || true

@@ -5,7 +5,8 @@ import { familyTitle } from '../core/groups';
 import { useStore } from '../data/store';
 import { sharedTree, syncConfigured, treeLink } from '../sync/config';
 import {
-  addMember, listMembers, removeMember, sendSignInCode, setMemberRole, shareLocalTree, signOut, useSync, verifySignInCode, type Member,
+  addMember, listMembers, removeMember, sendSignInCode, setMemberRole, shareLocalTree, signOut, treeActivity, useSync, verifySignInCode,
+  type ActivityRow, type Member,
 } from '../sync/engine';
 
 /** Status words for the share button and panel. */
@@ -306,10 +307,60 @@ function SharedPanel() {
       {role === 'editor' && <p className="text-[12px] text-ink-muted">You can view and edit this tree. Changes save automatically.</p>}
       {role === 'viewer' && <p className="text-[12px] text-ink-muted">You can view this tree. Ask its owner if you’d like to edit too.</p>}
       {isOwner && <Members />}
+      {isOwner && <Activity />}
       {email && <SignedInAs email={email} />}
       <a href={location.pathname} className="text-[12px] text-moss hover:underline">
         Open my private tree in this browser
       </a>
+    </div>
+  );
+}
+
+/** "today", "yesterday", "5 days ago", or the date for anything older than two weeks. */
+function ago(iso: string | null): string {
+  if (!iso) return 'never';
+  const d = new Date(iso);
+  const days = Math.floor((Date.now() - d.getTime()) / 86_400_000);
+  if (days <= 0) return 'today';
+  if (days === 1) return 'yesterday';
+  if (days < 14) return `${days} days ago`;
+  return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+/** The owner's activity log: who signed in, opened, edited and backed up the tree, and when. */
+function Activity() {
+  const [rows, setRows] = useState<ActivityRow[] | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  useEffect(() => void treeActivity().then(setRows, (e: Error) => setErr(e.message)), []);
+  const latest = (k: keyof ActivityRow) =>
+    rows?.map((r) => r[k] as string | null).filter(Boolean).sort().at(-1) ?? null;
+  const backup = latest('last_export');
+  const backupOld = !backup || Date.now() - new Date(backup).getTime() > 30 * 86_400_000;
+  return (
+    <div className="flex flex-col gap-1.5 border-t border-rule pt-3">
+      <span className="label-caps !text-[10px]">Activity</span>
+      {err && <p className={errText}>{err}</p>}
+      {rows && (
+        <>
+          <p className={`text-[12px] ${backupOld ? 'text-[#9A3B2F]' : 'text-ink-muted'}`}>
+            Last backup: {ago(backup)}
+            {backupOld && ' · use Archive → Export archive to save a copy'}
+          </p>
+          <ul className="flex flex-col gap-1">
+            {rows.map((r) => (
+              <li key={r.email} className="text-[12px] leading-snug">
+                <span className="block truncate">{r.role === 'owner' ? 'You' : r.email}</span>
+                <span className="block text-[11px] text-ink-muted">
+                  signed in {ago(r.last_sign_in)} · opened {ago(r.last_seen)} · edited {ago(r.last_edit)}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-[11px] leading-snug text-ink-muted">
+            The free plan pauses the tree after a week with no use; a daily check emails you before that and when a backup is due.
+          </p>
+        </>
+      )}
     </div>
   );
 }

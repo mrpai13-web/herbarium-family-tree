@@ -203,6 +203,7 @@ async function connect(): Promise<void> {
   });
   await pull();
   useSync.setState({ firstLoad: false });
+  noteVisit();
   if (!channel) {
     channel = sb.channel(`tree:${sharedTree}`);
     channel.on('broadcast', { event: 'changed' }, () => void pull()).subscribe();
@@ -423,6 +424,48 @@ export async function shareLocalTree(name: string, progress: (done: number, tota
     }
   }
   return treeLink(id);
+}
+
+/* ------------------------------------------------------------ activity log */
+
+const VISIT_KEY = sharedTree ? `herbarium-visit-${sharedTree}` : '';
+
+/** Logs "opened the tree" at most every 6 hours per device (the owner's activity log). */
+function noteVisit() {
+  try {
+    const last = Number(localStorage.getItem(VISIT_KEY) ?? 0);
+    if (Date.now() - last < 6 * 3600_000) return;
+    localStorage.setItem(VISIT_KEY, String(Date.now()));
+  } catch {
+    /* storage blocked: log every visit */
+  }
+  void noteActivity('visit');
+}
+
+/** Records a visit or a backup export of the shared tree. Never throws. */
+export async function noteActivity(kind: 'visit' | 'export'): Promise<void> {
+  if (!sharedTree || !live) return;
+  try {
+    await supabase().rpc('note_activity', { p_tree: sharedTree, p_kind: kind });
+  } catch {
+    /* only a log */
+  }
+}
+
+export interface ActivityRow {
+  email: string;
+  role: Role;
+  last_sign_in: string | null;
+  last_seen: string | null;
+  last_edit: string | null;
+  last_export: string | null;
+}
+
+/** The owner's activity log: everyone with access, and when they last signed in, visited, edited, backed up. */
+export async function treeActivity(): Promise<ActivityRow[]> {
+  const { data, error } = await supabase().rpc('tree_activity', { p_tree: sharedTree });
+  if (error) throw new Error(error.message);
+  return data as ActivityRow[];
 }
 
 export interface Member {

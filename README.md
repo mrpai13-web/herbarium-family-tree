@@ -129,6 +129,32 @@ design; `.env` `VITE_SUPABASE_URL` / `VITE_SUPABASE_KEY` override them for testi
 Sign-in emails go through the owner's Gmail (custom SMTP), because Supabase's built-in
 mailer only sends to the project's own team.
 
+## Reminders (`.github/workflows/family-tree-monitor.yml`)
+
+The free Supabase plan pauses a project after a week without use (restorable with one
+click for 90 days) and keeps no backups. A GitHub Actions job runs daily at 8 am Hawaii
+time (`.github/monitor/check.py`, standard-library Python) and emails the owner:
+
+- every Monday: the activity log (last sign-in, visit, edit and backup), which also shows
+  the check is still running;
+- after 4 and 6 days with no sign-in, visit or edit: open the tree before day 7;
+- on Mondays while the last backup export is over 30 days old (or never);
+- every day the database doesn't answer (probably paused): how to restore, and the
+  90-day limit.
+
+It reads dates and counts only, through `monitor_report(token)`; the database stores just
+the token's SHA-256 (`monitor_settings`), the token is the `MONITOR_TOKEN` repo secret.
+The app logs visits (at most every 6 h per device) and shared-tree backup exports with
+`note_activity`; sign-ins come from Supabase Auth and edits from `records`. The owner sees
+the same log under *Activity* in the Share panel (`tree_activity`, owner only).
+
+Setup: run `supabase/schema.sql`, insert the token hash into `monitor_settings`, and add
+repo secrets `MONITOR_TOKEN`, `GMAIL_USER`, `GMAIL_APP_PASSWORD` (a Google app password)
+and optionally `NOTIFY_EMAIL` (defaults to `GMAIL_USER`). *Actions -> Family tree reminders
+-> Run workflow* sends a test email. The daily request itself most likely counts as use
+and keeps the project awake; the job re-enables its own schedule each run, since GitHub
+switches off schedules in public repos after 60 days without commits.
+
 ## Line styles
 
 | Relationship | On the sheet |
